@@ -1,0 +1,28 @@
+[build]
+  publish = "home_page"
+  command = "echo 'No build command needed'"
+
+[[redirects]]
+  from = "/"
+  to = "/home.html"
+  status = 200
+
+[[redirects]]
+  from = "/text-to-speech"
+  to = "/text_to_speech/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/speech-to-text"
+  to = "/speech_to_text/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/translate-and-speak"
+  to = "/translate_and_speak/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/text-to-sign-language"
+  to = "/text_to_sign_language/index.html"
+  status = 200
