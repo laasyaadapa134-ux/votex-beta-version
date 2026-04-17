@@ -1,12 +1,14 @@
 [build]
-  publish = "home_page"
+  publish = "."
   command = "echo 'No build command needed'"
 
+# Redirect root to home page
 [[redirects]]
   from = "/"
-  to = "/home.html"
+  to = "/index.html"
   status = 200
 
+# Feature page redirects
 [[redirects]]
   from = "/text-to-speech"
   to = "/text_to_speech/index.html"

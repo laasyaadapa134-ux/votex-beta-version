@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>VOTEX — Voice to Text Converter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="home_page/votex-modern.css">
+    <style>
+      .hero-left{color:#f7fffb}
+      .container-hero{padding:64px 28px}
+
+      .hero-left::before{
+        content:'';
+        position:absolute;
+        left:-6%;
+        top:6%;
+        width:68%;
+        height:92%;
+        background: radial-gradient(40% 60% at 20% 30%, rgba(123,227,199,0.14), transparent 18%),
+                    radial-gradient(30% 40% at 80% 70%, rgba(91,140,255,0.08), transparent 22%);
+        filter:blur(36px);
+        z-index:1;
+        pointer-events:none;
+        border-radius:28px;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <a href="/" class="logo-link">
+          <img src="home_page/logo.png" alt="VOTEX logo" class="nav-logo">
+        </a>
+        <nav class="top-nav">
+          <ul>
+            <li><a href="/" class="active">🏠 Home</a></li>
+            <li><a href="/text-to-speech">Text to speech</a></li>
+            <li><a href="/speech-to-text">Speech to text</a></li>
+            <li><a href="/translate-and-speak">Translate & Speak</a></li>
+            <li><a href="/text-to-sign-language">Text to Sign Language</a></li>
+          </ul>
+        </nav>
+        <div class="login-wrap">
+          <button class="login-btn">Login</button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero-section">
+        <div class="container-hero">
+          <div class="hero-left">
+            <h1 class="hero-title">VOTEX</h1>
+            <p class="hero-tagline">Your Voice, Our Technology</p>
+            <p class="hero-description">
+              Transform communication with cutting-edge voice-to-text technology
+              and sign language conversion. VOTEX bridges the gap between spoken
+              and written language, making accessibility universal.
+            </p>
+            <div class="hero-ctas">
+              <a href="/text-to-sign-language" class="btn btn-primary">Try Sign Language</a>
+              <a href="/speech-to-text" class="btn btn-secondary">Try Speech to Text</a>
+            </div>
+          </div>
+          <div class="hero-right">
+            <img src="home_page/illustration.png" alt="Voice visualization" class="hero-image">
+          </div>
+        </div>
+      </section>
+
+      <section class="features-section">
+        <div class="container">
+          <h2 class="section-title">Our Features</h2>
+          <div class="features-grid">
+            <div class="feature-card">
+              <div class="feature-icon">🗣️</div>
+              <h3>Text to Speech</h3>
+              <p>Convert written text into natural-sounding speech with our advanced TTS engine.</p>
+              <a href="/text-to-speech" class="feature-link">Try Now →</a>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">📝</div>
+              <h3>Speech to Text</h3>
+              <p>Accurately transcribe spoken words into written text in real-time.</p>
+              <a href="/speech-to-text" class="feature-link">Try Now →</a>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">🌍</div>
+              <h3>Translate & Speak</h3>
+              <p>Translate text between languages and hear the pronunciation instantly.</p>
+              <a href="/translate-and-speak" class="feature-link">Try Now →</a>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">🤟</div>
+              <h3>Text to Sign Language</h3>
+              <p>Convert text into animated sign language for better accessibility.</p>
+              <a href="/text-to-sign-language" class="feature-link">Try Now →</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="about-section">
+        <div class="container">
+          <h2 class="section-title">About VOTEX</h2>
+          <div class="about-content">
+            <p>
+              VOTEX is a comprehensive platform that combines multiple speech and 
+              language technologies to break down communication barriers. Our mission 
+              is to make communication accessible to everyone, regardless of their 
+              preferred medium.
+            </p>
+            <p>
+              Whether you need to convert speech to text, translate languages, or 
+              communicate through sign language, VOTEX provides the tools you need 
+              in one seamless platform.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>&copy; 2026 VOTEX. All rights reserved.</p>
+        <p>Making communication accessible for everyone.</p>
+      </div>
+    </footer>
+
+    <script src="home_page/votex-modern.js"></script>
+  </body>
+</html>
