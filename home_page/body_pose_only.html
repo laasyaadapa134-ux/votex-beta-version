@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediaPipe Body Pose Avatar</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    h1 {
+      color: #2d3748;
+      margin-bottom: 8px;
+      font-size: 28px;
+    }
+    .subtitle {
+      color: #718096;
+      margin-bottom: 24px;
+    }
+    #viewer {
+      width: 100%;
+      height: 600px;
+      background: #f7fafc;
+      border-radius: 12px;
+      position: relative;
+    }
+    .controls {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    select, button {
+      padding: 12px 24px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    select {
+      background: white;
+      min-width: 200px;
+    }
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+    }
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .status {
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .status.success {
+      background: #c6f6d5;
+      color: #22543d;
+    }
+    .status.error {
+      background: #fed7d7;
+      color: #742a2a;
+    }
+    .status.info {
+      background: #bee3f8;
+      color: #2c5282;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h1>🎭 MediaPipe Body Pose (Corrected)</h1>
+      <p class="subtitle">Body landmarks only - hands use different coordinate system</p>
+      
+      <div id="viewer"></div>
+    </div>
+
+    <div class="card">
+      <div class="controls">
+        <select id="wordSelect">
+          <option value="">-- Select a word --</option>
+          <option value="GOOD">GOOD</option>
+          <option value="HELLO">HELLO</option>
+          <option value="HI">HI</option>
+        </select>
+        <button id="loadBtn">Load & Play</button>
+        <button id="pauseBtn" disabled>Pause</button>
+        <button id="resetBtn" disabled>Reset</button>
+      </div>
+      <div id="status" style="margin-top: 16px;"></div>
+    </div>
+  </div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.150.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    let scene, camera, renderer, controls;
+    let poseData = null;
+    let currentFrame = 0;
+    let isPlaying = false;
+    let animationId = null;
+    let skeleton = null;
+    let connections = [];
+
+    // MediaPipe Pose connections (33 body landmarks only)
+    const POSE_CONNECTIONS = [
+      // Face
+      [10, 9], [9, 8], [8, 7], [7, 3], [3, 2], [2, 1], [1, 4], [4, 5], [5, 6],
+      // Arms and shoulders
+      [11, 12], // Shoulders
+      [11, 13], [13, 15], // Left arm
+      [12, 14], [14, 16], // Right arm  
+      // Wrists to fingers (palm area)
+      [15, 17], [15, 19], [15, 21], // Left hand area
+      [16, 18], [16, 20], [16, 22], // Right hand area  
+      // Torso
+      [11, 23], [12, 24], [23, 24],
+      // Hips to knees
+      [23, 25], [24, 26],
+      // Knees to ankles
+      [25, 27], [26, 28],
+      // Ankles to feet
+      [27, 29], [28, 30],
+      [29, 31], [30, 32],
+      // Feet connections
+      [27, 31], [28, 32]
+    ];
+
+    function init() {
+      const container = document.getElementById('viewer');
+      
+      // Scene
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xf7fafc);
+      
+      // Camera
+      camera = new THREE.PerspectiveCamera(
+        50,
+        container.clientWidth / container.clientHeight,
+        0.1,
+        100
+      );
+      camera.position.set(0, 0, 3);
+      
+      // Renderer
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      container.appendChild(renderer.domElement);
+      
+      // Controls
+      controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      
+      // Lighting
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+      scene.add(ambientLight);
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      directionalLight.position.set(1, 1, 1);
+      scene.add(directionalLight);
+      
+      // Grid
+      const gridHelper = new THREE.GridHelper(2, 20, 0xcccccc, 0xeeeeee);
+      scene.add(gridHelper);
+      
+      // Resize handler
+      window.addEventListener('resize', onWindowResize);
+      
+      showStatus('System ready! Select a word to begin.', 'info');
+    }
+
+    function onWindowResize() {
+      const container = document.getElementById('viewer');
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+
+    function createSkeleton() {
+      if (skeleton) {
+        scene.remove(skeleton);
+        skeleton = null;
+      }
+      
+      skeleton = new THREE.Group();
+      
+      // Create spheres for 33 body joints
+      const jointGeometry = new THREE.SphereGeometry(0.015, 16, 16);
+      const jointMaterial = new THREE.MeshPhongMaterial({ color: 0x4299e1 });
+      
+      for (let i = 0; i < 33; i++) {
+        const joint = new THREE.Mesh(jointGeometry, jointMaterial);
+        joint.visible = false;
+        skeleton.add(joint);
+      }
+      
+      // Create connection lines
+      const lineMaterial = new THREE.LineBasicMaterial({ color: 0x2d3748, linewidth: 2 });
+      
+      connections = [];
+      
+      POSE_CONNECTIONS.forEach(([start, end]) => {
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(6);
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const line = new THREE.Line(geometry, lineMaterial);
+        connections.push({ line, start, end });
+        skeleton.add(line);
+      });
+      
+      scene.add(skeleton);
+    }
+
+    function updateSkeleton(frame) {
+      if (!skeleton || !frame || !frame.pose_landmarks) return;
+      
+      const landmarks = frame.pose_landmarks;
+      
+      // Update joint positions
+      landmarks.forEach((landmark, i) => {
+        if (i < 33) {
+          const joint = skeleton.children[i];
+          const visibility = landmark.visibility !== undefined ? landmark.visibility : 1.0;
+          
+          if (visibility > 0.1) {
+            // MediaPipe: x right, y down, z forward
+            // Three.js: x right, y up, z back
+            joint.position.set(
+              (landmark.x - 0.5) * 2,   // Center horizontally
+              -(landmark.y - 0.5) * 2,  // Flip Y vertically
+              -landmark.z * 2            // Depth
+            );
+            joint.visible = true;
+          } else {
+            joint.visible = false;
+          }
+        }
+      });
+      
+      // Update connection lines
+      connections.forEach(({ line, start, end }) => {
+        if (start < landmarks.length && end < landmarks.length) {
+          const startLandmark = landmarks[start];
+          const endLandmark = landmarks[end];
+          
+          const startVis = startLandmark.visibility !== undefined ? startLandmark.visibility : 1.0;
+          const endVis = endLandmark.visibility !== undefined ? endLandmark.visibility : 1.0;
+          
+          if (startVis > 0.1 && endVis > 0.1) {
+            const positions = line.geometry.attributes.position.array;
+            positions[0] = (startLandmark.x - 0.5) * 2;
+            positions[1] = -(startLandmark.y - 0.5) * 2;
+            positions[2] = -startLandmark.z * 2;
+            positions[3] = (endLandmark.x - 0.5) * 2;
+            positions[4] = -(endLandmark.y - 0.5) * 2;
+            positions[5] = -endLandmark.z * 2;
+            
+            line.geometry.attributes.position.needsUpdate = true;
+            line.visible = true;
+          } else {
+            line.visible = false;
+          }
+        }
+      });
+    }
+
+    async function loadPoseData(word) {
+      try {
+        showStatus(`Loading ${word}...`, 'info');
+        
+        const response = await fetch(`/${word}.json`);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
+        poseData = await response.json();
+        currentFrame = 0;
+        createSkeleton();
+        updateSkeleton(poseData.frames[0]);
+        
+        showStatus(`✅ Loaded ${poseData.frames.length} frames at ${poseData.fps} FPS (body pose only)`, 'success');
+        
+        document.getElementById('pauseBtn').disabled = false;
+        document.getElementById('resetBtn').disabled = false;
+        
+        return true;
+      } catch (error) {
+        showStatus(`❌ Error: ${error.message}`, 'error');
+        return false;
+      }
+    }
+
+    function play() {
+      if (!poseData || isPlaying) return;
+      
+      isPlaying = true;
+      const frameTime = 1000 / poseData.fps;
+      let lastTime = performance.now();
+      
+      function animate() {
+        if (!isPlaying) return;
+        
+        const currentTime = performance.now();
+        const elapsed = currentTime - lastTime;
+        
+        if (elapsed >= frameTime) {
+          currentFrame = (currentFrame + 1) % poseData.frames.length;
+          updateSkeleton(poseData.frames[currentFrame]);
+          lastTime = currentTime;
+        }
+        
+        animationId = requestAnimationFrame(animate);
+      }
+      
+      animate();
+    }
+
+    function pause() {
+      isPlaying = false;
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+      }
+    }
+
+    function reset() {
+      pause();
+      currentFrame = 0;
+      if (poseData) {
+        updateSkeleton(poseData.frames[0]);
+      }
+    }
+
+    function showStatus(message, type = 'info') {
+      const statusEl = document.getElementById('status');
+      statusEl.textContent = message;
+      statusEl.className = `status ${type}`;
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    // Event listeners
+    document.getElementById('loadBtn').addEventListener('click', async () => {
+      const word = document.getElementById('wordSelect').value;
+      if (!word) {
+        showStatus('Please select a word', 'error');
+        return;
+      }
+      
+      const loaded = await loadPoseData(word);
+      if (loaded) {
+        play();
+      }
+    });
+
+    document.getElementById('pauseBtn').addEventListener('click', () => {
+      if (isPlaying) {
+        pause();
+        document.getElementById('pauseBtn').textContent = 'Resume';
+      } else {
+        play();
+        document.getElementById('pauseBtn').textContent = 'Pause';
+      }
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', reset);
+
+    // Initialize
+    init();
+    animate();
+  </script>
+</body>
+</html>

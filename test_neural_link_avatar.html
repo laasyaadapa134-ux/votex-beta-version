@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural-Link Mannequin | ASL Avatar</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0e1f 0%, #1a1f3a 100%);
+            color: #e0e7ff;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        #avatar-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        .controls-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(10, 14, 31, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(34, 211, 238, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            min-width: 320px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            z-index: 100;
+        }
+
+        .controls-panel h2 {
+            color: #22d3ee;
+            font-size: 18px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px 12px;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            border-radius: 6px;
+            color: #e0e7ff;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #22d3ee;
+            box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.15);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #0ea5e9 0%, #22d3ee 100%);
+            border: none;
+            border-radius: 6px;
+            color: #0a0e1f;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            margin-bottom: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(34, 211, 238, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: #e0e7ff;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .quick-btn {
+            padding: 8px;
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            border-radius: 6px;
+            color: #a5b4fc;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        .quick-btn:hover {
+            background: rgba(99, 102, 241, 0.4);
+            color: #e0e7ff;
+            border-color: #6366f1;
+        }
+
+        .status {
+            margin-top: 15px;
+            padding: 12px;
+            background: rgba(30, 41, 59, 0.6);
+            border-radius: 6px;
+            font-size: 12px;
+            color: #94a3b8;
+            border-left: 3px solid #22d3ee;
+        }
+
+        .status.loading {
+            border-left-color: #f59e0b;
+            color: #fbbf24;
+        }
+
+        .status.success {
+            border-left-color: #22c55e;
+            color: #86efac;
+        }
+
+        .status.error {
+            border-left-color: #ef4444;
+            color: #fca5a5;
+        }
+
+        .feature-list {
+            margin-top: 15px;
+            font-size: 11px;
+            color: #64748b;
+            line-height: 1.6;
+        }
+
+        .feature-list ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .feature-list li:before {
+            content: "◆ ";
+            color: #22d3ee;
+            margin-right: 8px;
+        }
+
+        .info-badge {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(10, 14, 31, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(34, 211, 238, 0.3);
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 11px;
+            color: #64748b;
+            z-index: 100;
+        }
+
+        .info-badge strong {
+            color: #22d3ee;
+        }
+    </style>
+</head>
+<body>
+    <div id="avatar-container"></div>
+
+    <div class="controls-panel">
+        <h2>⬡ Neural-Link Control</h2>
+        
+        <div class="input-group">
+            <label>ASL Word</label>
+            <input type="text" id="word-input" placeholder="Enter word (e.g., CANDY)" />
+        </div>
+        
+        <button class="btn" id="load-btn">Load & Play</button>
+        <button class="btn btn-secondary" id="stop-btn">Stop Animation</button>
+        
+        <div class="quick-actions">
+            <button class="quick-btn" data-word="TEST">Test</button>
+            <button class="quick-btn" data-word="CANDY">Candy</button>
+            <button class="quick-btn" data-word="CLOTHES">Clothes</button>
+            <button class="quick-btn" data-word="HELLO">Hello</button>
+            <button class="quick-btn" data-word="PLEASE">Please</button>
+            <button class="quick-btn" data-word="THANK">Thank</button>
+            <button class="quick-btn" data-word="GOOD">Good</button>
+            <button class="quick-btn" data-word="BAD">Bad</button>
+            <button class="quick-btn" data-word="YES">Yes</button>
+        </div>
+
+        <div class="status" id="status">
+            Ready. Load a pose to visualize.
+        </div>
+
+        <div class="feature-list">
+            <strong>Neural-Link Features:</strong>
+            <ul>
+                <li>Octahedron joints (crystalline)</li>
+                <li>Frosted glass bones</li>
+                <li>Wireframe icosahedron head</li>
+                <li>21-point hand tracking per hand</li>
+                <li>Pulsing emissive glow</li>
+                <li>Smooth 60fps interpolation</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="info-badge">
+        <strong>Neural-Link Mannequin</strong> v1.0<br>
+        MediaPipe-driven ASL Avatar
+    </div>
+
+    <!-- Three.js -->
+    <script src="/text_to_sign_language/vendor/three.min.js"></script>
+    
+    <!-- Neural-Link Avatar Component -->
+    <script src="/text_to_sign_language/components/NeuralLinkAvatar.js?v=20260325"></script>
+
+    <script>
+        console.log('='.repeat(60));
+        console.log('Neural-Link Mannequin Avatar - Initialization');
+        console.log('='.repeat(60));
+
+        // Wait for everything to load
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('[Main] DOM loaded');
+            
+            // Verify dependencies
+            if (typeof THREE === 'undefined') {
+                console.error('[Main] THREE.js not loaded!');
+                updateStatus('ERROR: THREE.js not loaded', 'error');
+                return;
+            }
+            console.log('[Main] THREE.js version:', THREE.REVISION);
+
+            if (typeof NeuralLinkAvatarAPI === 'undefined') {
+                console.error('[Main] NeuralLinkAvatar not loaded!');
+                updateStatus('ERROR: NeuralLinkAvatar not loaded', 'error');
+                return;
+            }
+            console.log('[Main] NeuralLinkAvatar API ready');
+
+            // Mount avatar
+            try {
+                const avatar = NeuralLinkAvatarAPI.mount('avatar-container', {
+                    jointSize: 0.035,
+                    boneRadius: 0.015,
+                    fingerJointSize: 0.012,
+                    fingerBoneRadius: 0.008,
+                    glowIntensity: 0.8,
+                    pulseSpeed: 0.002,
+                    lerpFactor: 0.35
+                });
+                console.log('[Main] Avatar mounted successfully');
+                updateStatus('Avatar initialized. Ready to load pose data.', 'success');
+            } catch (error) {
+                console.error('[Main] Failed to mount avatar:', error);
+                updateStatus('ERROR: ' + error.message, 'error');
+                return;
+            }
+
+            // UI Event Handlers
+            const wordInput = document.getElementById('word-input');
+            const loadBtn = document.getElementById('load-btn');
+            const stopBtn = document.getElementById('stop-btn');
+            const quickBtns = document.querySelectorAll('.quick-btn');
+
+            loadBtn.addEventListener('click', async () => {
+                const word = wordInput.value.trim().toUpperCase();
+                if (!word) {
+                    updateStatus('Please enter a word', 'error');
+                    return;
+                }
+                await loadWord(word);
+            });
+
+            wordInput.addEventListener('keypress', async (e) => {
+                if (e.key === 'Enter') {
+                    const word = wordInput.value.trim().toUpperCase();
+                    if (word) {
+                        await loadWord(word);
+                    }
+                }
+            });
+
+            stopBtn.addEventListener('click', () => {
+                NeuralLinkAvatarAPI.stop();
+                updateStatus('Animation stopped', 'success');
+            });
+
+            quickBtns.forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const word = btn.getAttribute('data-word');
+                    wordInput.value = word;
+                    await loadWord(word);
+                });
+            });
+
+            async function loadWord(word) {
+                updateStatus(`Loading "${word}"...`, 'loading');
+                console.log(`[Main] Loading word: ${word}`);
+                
+                const success = await NeuralLinkAvatarAPI.loadAndPlay(word);
+                
+                if (success) {
+                    updateStatus(`Playing "${word}" - ${NeuralLinkAvatarAPI.instance.poseBridge.frames.length} frames @ ${NeuralLinkAvatarAPI.instance.poseBridge.fps} fps`, 'success');
+                } else {
+                    updateStatus(`Failed to load "${word}". File not found.`, 'error');
+                }
+            }
+
+            function updateStatus(message, type = '') {
+                const statusEl = document.getElementById('status');
+                statusEl.textContent = message;
+                statusEl.className = 'status ' + type;
+            }
+
+            // Auto-load TEST on startup for demonstration
+            setTimeout(() => {
+                wordInput.value = 'TEST';
+                loadWord('TEST');
+            }, 500);
+        });
+    </script>
+</body>
+</html>

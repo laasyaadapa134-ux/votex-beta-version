@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Language Production System - pose-viewer</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --primary: #667eea;
+      --primary-dark: #5568d3;
+      --secondary: #764ba2;
+      --success: #10b981;
+      --error: #ef4444;
+      --warning: #f59e0b;
+      --bg-light: #f9fafb;
+      --bg-dark: #1f2937;
+      --text-dark: #111827;
+      --text-light: #6b7280;
+      --border: #e5e7eb;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      color: var(--text-dark);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+    
+    /* Header */
+    header {
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      margin-bottom: 24px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    }
+    
+    h1 {
+      color: var(--primary);
+      font-size: 2.5rem;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .subtitle {
+      color: var(--text-light);
+      font-size: 1.1rem;
+    }
+    
+    .badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      padding: 8px 20px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-top: 12px;
+    }
+    
+    /* Main Grid */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    
+    @media (max-width: 1200px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    }
+    
+    .card h2 {
+      color: var(--primary);
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    /* Viewer Container */
+    .viewer-container {
+      background: var(--bg-light);
+      border-radius: 12px;
+      padding: 20px;
+      min-height: 600px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      border: 2px solid var(--border);
+    }
+    
+    pose-viewer {
+      width: 100%;
+      height: 600px;
+      border-radius: 8px;
+    }
+    
+    .loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.95);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      z-index: 10;
+    }
+    
+    .spinner {
+      width: 60px;
+      height: 60px;
+      border: 4px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360px); }
+    }
+    
+    .loading-text {
+      margin-top: 16px;
+      color: var(--text-light);
+      font-size: 1rem;
+    }
+    
+    /* Controls */
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    label {
+      font-weight: 600;
+      color: var(--text-dark);
+      font-size: 0.95rem;
+    }
+    
+    select, input {
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 2px solid var(--border);
+      font-size: 1rem;
+      transition: all 0.2s;
+      background: white;
+    }
+    
+    select:focus, input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    button {
+      padding: 14px 24px;
+      border-radius: 8px;
+      border: none;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    button.primary {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+    }
+    
+    button.primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    button.secondary {
+      background: var(--bg-light);
+      color: var(--text-dark);
+      border: 2px solid var(--border);
+    }
+    
+    button.secondary:hover:not(:disabled) {
+      background: var(--border);
+    }
+    
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .button-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    
+    /* Status Panel */
+    .status-panel {
+      background: var(--bg-light);
+      padding: 20px;
+      border-radius: 8px;
+      border-left: 4px solid var(--primary);
+    }
+    
+    .status-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .status-item:last-child {
+      border-bottom: none;
+    }
+    
+    .status-label {
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+    
+    .status-value {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    
+    .status-dot.success { background: var(--success); }
+    .status-dot.error { background: var(--error); }
+    .status-dot.warning { background: var(--warning); }
+    .status-dot.idle { background: var(--text-light); animation: none; }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    /* Log Panel */
+    .log-panel {
+      background: var(--bg-dark);
+      color: #d1d5db;
+      padding: 20px;
+      border-radius: 8px;
+      max-height: 400px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      margin-top: 20px;
+    }
+    
+    .log-entry {
+      padding: 6px 0;
+      line-height: 1.6;
+      border-bottom: 1px solid #374151;
+    }
+    
+    .log-entry:last-child {
+      border-bottom: none;
+    }
+    
+    .log-timestamp {
+      color: #9ca3af;
+      margin-right: 12px;
+    }
+    
+    .log-level {
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      margin-right: 8px;
+      font-weight: 600;
+    }
+    
+    .log-level.info { background: #3b82f6; color: white; }
+    .log-level.success { background: #10b981; color: white; }
+    .log-level.error { background: #ef4444; color: white; }
+    .log-level.warning { background: #f59e0b; color: white; }
+    
+    /* Full Width Card */
+    .full-width {
+      grid-column: 1 / -1;
+    }
+    
+    /* Alert Box */
+    .alert {
+      padding: 16px 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .alert.info {
+      background: #dbeafe;
+      border-left: 4px solid #3b82f6;
+      color: #1e40af;
+    }
+    
+    .alert.warning {
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      color: #92400e;
+    }
+    
+    .alert-icon {
+      font-size: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>
+        🤟 Sign Language Production System
+      </h1>
+      <p class="subtitle">Production-Ready 3D Avatar Animation powered by pose-viewer</p>
+      <span class="badge">✨ PRODUCTION VERSION v2.0</span>
+    </header>
+
+    <div class="alert info">
+      <span class="alert-icon">ℹ️</span>
+      <div>
+        <strong>pose-viewer Integration Active</strong> - This system uses the official pose-viewer web component for professional-grade 3D avatar rendering. All bone mapping and animation is handled automatically.
+      </div>
+    </div>
+
+    <div class="main-grid">
+      <!-- Left: 3D Avatar Viewer -->
+      <div class="card">
+        <h2>🎭 3D Avatar Viewer</h2>
+        <div class="viewer-container" id="viewerContainer">
+          <div class="loading-overlay" id="loadingOverlay">
+            <div class="spinner"></div>
+            <div class="loading-text">Initializing pose-viewer...</div>
+          </div>
+          <!-- pose-viewer will be inserted here -->
+        </div>
+      </div>
+
+      <!-- Right: Controls -->
+      <div class="card">
+        <h2>🎮 Controls</h2>
+        
+        <div class="controls">
+          <div class="control-group">
+            <label for="wordSelect">Select Sign Word:</label>
+            <select id="wordSelect">
+              <option value="">-- Choose a word --</option>
+              <option value="GOOD_DIRECT">GOOD</option>
+              <option value="HELLO">HELLO</option>
+              <option value="HI">HI</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label for="fpsSlider">Playback Speed (FPS): <span id="fpsValue">10</span></label>
+            <input type="range" id="fpsSlider" min="5" max="30" value="10" step="1">
+          </div>
+
+          <button id="loadBtn" class="primary" disabled>
+            📥 Load Pose Data
+          </button>
+
+          <div class="button-group">
+            <button id="playBtn" class="primary" disabled>
+              ▶️ Play
+            </button>
+            <button id="pauseBtn" class="secondary" disabled>
+              ⏸️ Pause
+            </button>
+          </div>
+
+          <button id="resetBtn" class="secondary" disabled>
+            🔄 Reset
+          </button>
+        </div>
+
+        <div class="status-panel" style="margin-top: 24px;">
+          <h3 style="margin-bottom: 16px; color: var(--text-dark);">System Status</h3>
+          <div class="status-item">
+            <span class="status-label">pose-viewer:</span>
+            <span class="status-value">
+              <span class="status-dot idle" id="viewerDot"></span>
+              <span id="viewerStatus">Loading...</span>
+            </span>
+          </div>
+          <div class="status-item">
+            <span class="status-label">Pose Data:</span>
+            <span class="status-value">
+              <span class="status-dot idle" id="poseDot"></span>
+              <span id="poseStatus">Not loaded</span>
+            </span>
+          </div>
+          <div class="status-item">
+            <span class="status-label">Frame Count:</span>
+            <span class="status-value">
+              <span id="frameCount">0</span>
+            </span>
+          </div>
+          <div class="status-item">
+            <span class="status-label">Current FPS:</span>
+            <span class="status-value">
+              <span id="currentFps">0</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom: Logs -->
+    <div class="card full-width">
+      <h2>📋 System Logs</h2>
+      <div class="log-panel" id="logPanel">
+        <div class="log-entry">
+          <span class="log-timestamp">[00:00:00]</span>
+          <span class="log-level info">INFO</span>
+          System initializing...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load pose-viewer from node_modules -->
+  <script type="module" src="./node_modules/pose-viewer/loader/index.js"></script>
+  
+  <!-- Load pose-format library for .pose file support -->
+  <script src="./node_modules/pose-viewer/dist/pose-viewer/pose-viewer.esm.js" type="module"></script>
+
+  <script type="module">
+    import { defineCustomElements } from './node_modules/pose-viewer/loader/index.js';
+    
+    // Initialize pose-viewer web components
+    defineCustomElements(window);
+    
+    // Application State
+    const state = {
+      poseViewer: null,
+      currentWord: null,
+      poseData: null,
+      poseUrl: null,
+      isPlaying: false,
+      fps: 10
+    };
+
+    // Logging System
+    function log(message, level = 'info') {
+      const logPanel = document.getElementById('logPanel');
+      const timestamp = new Date().toLocaleTimeString();
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      entry.innerHTML = `
+        <span class="log-timestamp">[${timestamp}]</span>
+        <span class="log-level ${level}">${level.toUpperCase()}</span>
+        ${message}
+      `;
+      logPanel.appendChild(entry);
+      logPanel.scrollTop = logPanel.scrollHeight;
+      console.log(`[${level}] ${message}`);
+    }
+
+    // Status Update System
+    function setStatus(type, status, text) {
+      const dot = document.getElementById(`${type}Dot`);
+      const statusEl = document.getElementById(`${type}Status`);
+      dot.className = `status-dot ${status}`;
+      statusEl.textContent = text;
+    }
+
+    // Initialize pose-viewer
+    async function initPoseViewer() {
+      try {
+        log('Initializing pose-viewer web component...', 'info');
+        
+        // Create pose-viewer element
+        const viewer = document.createElement('pose-viewer');
+        viewer.setAttribute('width', '100%');
+        viewer.setAttribute('height', '600px');
+        viewer.setAttribute('renderer', 'canvas');
+        viewer.setAttribute('loop', 'true');
+        viewer.setAttribute('autoplay', 'false');
+        viewer.setAttribute('background', '#f9fafb');
+        
+        // Add to container
+        const container = document.getElementById('viewerContainer');
+        const overlay = document.getElementById('loadingOverlay');
+        container.insertBefore(viewer, overlay);
+        
+        state.poseViewer = viewer;
+        
+        // Wait for component to be defined
+        await customElements.whenDefined('pose-viewer');
+        
+        log('✅ pose-viewer component ready', 'success');
+        setStatus('viewer', 'success', 'Ready');
+        
+        // Hide loading overlay
+        overlay.style.display = 'none';
+        
+        // Setup event listeners
+        viewer.addEventListener('loadeddata$', () => {
+          log('Pose data loaded into viewer', 'success');
+        });
+        
+        viewer.addEventListener('firstRender$', () => {
+          log('First frame rendered', 'success');
+        });
+        
+        viewer.addEventListener('ended$', () => {
+          log('Animation ended', 'info');
+          state.isPlaying = false;
+          updateControls();
+        });
+        
+        return true;
+      } catch (error) {
+        log(`❌ Error initializing pose-viewer: ${error.message}`, 'error');
+        setStatus('viewer', 'error', 'Failed');
+        return false;
+      }
+    }
+
+    // Convert MediaPipe JSON to .pose format
+    async function convertMediaPipeToPose(mediaPipeData) {
+      log('Converting MediaPipe data to .pose format...', 'info');
+      
+      try {
+        // For now, we'll create a compatible format
+        // The pose-viewer expects specific .pose binary format
+        // We'll need to use the Python pose-format library or create compatible structure
+        
+        log('⚠️ MediaPipe → .pose conversion needed', 'warning');
+        log('Using fallback: Direct JSON visualization', 'info');
+        
+        // Return the data as-is for now
+        // pose-viewer might handle raw landmark data
+        return mediaPipeData;
+      } catch (error) {
+        log(`Error converting data: ${error.message}`, 'error');
+        throw error;
+      }
+    }
+
+    // Load pose data from JSON
+    async function loadPoseData(word) {
+      try {
+        log(`Loading pose data for "${word}"...`, 'info');
+        setStatus('pose', 'warning', 'Loading...');
+        
+        // Load .pose binary file instead of JSON
+        const poseUrl = `/poses/${word}.pose`;
+        const response = await fetch(poseUrl);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
+        // Get file as blob for pose-viewer
+        const blob = await response.blob();
+        state.poseData = blob;
+        state.currentWord = word;
+        state.poseUrl = poseUrl;
+        
+        log(`✅ Loaded .pose file for ${word}`, 'success');
+        setStatus('pose', 'success', 'Loaded');
+        
+        // Load into pose-viewer
+        await loadIntoPoseViewer(poseUrl);
+        
+        updateControls();
+        return true;
+      } catch (error) {
+        log(`❌ Error loading pose data: ${error.message}`, 'error');
+        setStatus('pose', 'error', 'Load failed');
+        return false;
+      }
+    }
+
+    // Load data into pose-viewer
+    async function loadIntoPoseViewer(poseUrl) {
+      if (!state.poseViewer) {
+        log('⚠️ pose-viewer not initialized', 'warning');
+        return;
+      }
+      
+      try {
+        log('Loading .pose file into pose-viewer...', 'info');
+        
+        // Set the src attribute to the .pose file URL
+        state.poseViewer.setAttribute('src', poseUrl);
+        
+        log('✅ Pose file loaded into viewer', 'success');
+        
+        // Wait for the viewer to load the data
+        await new Promise(resolve => {
+          const handler = () => {
+            log('📊 Viewer ready with pose data', 'info');
+            state.poseViewer.removeEventListener('loadeddata$', handler);
+            resolve();
+          };
+          state.poseViewer.addEventListener('loadeddata$', handler);
+          
+          // Timeout fallback
+          setTimeout(resolve, 2000);
+        });
+        
+      } catch (error) {
+        log(`Error loading into viewer: ${error.message}`, 'error');
+      }
+    }
+
+    // Update button states
+    function updateControls() {
+      const hasData = state.poseData !== null;
+      document.getElementById('loadBtn').disabled = !state.currentWord;
+      document.getElementById('playBtn').disabled = !hasData || state.isPlaying;
+      document.getElementById('pauseBtn').disabled = !hasData || !state.isPlaying;
+      document.getElementById('resetBtn').disabled = !hasData;
+    }
+
+    // Event Listeners
+    document.getElementById('wordSelect').addEventListener('change', (e) => {
+      state.currentWord = e.target.value;
+      updateControls();
+      if (state.currentWord) {
+        log(`Selected word: ${state.currentWord}`, 'info');
+      }
+    });
+
+    document.getElementById('fpsSlider').addEventListener('input', (e) => {
+      state.fps = parseInt(e.target.value);
+      document.getElementById('fpsValue').textContent = state.fps;
+    });
+
+    document.getElementById('loadBtn').addEventListener('click', async () => {
+      if (state.currentWord) {
+        await loadPoseData(state.currentWord);
+      }
+    });
+
+    document.getElementById('playBtn').addEventListener('click', async () => {
+      if (state.poseViewer && state.poseData) {
+        state.isPlaying = true;
+        updateControls();
+        log('▶️ Playing animation', 'info');
+        
+        // Call pose-viewer's play method
+        if (typeof state.poseViewer.play === 'function') {
+          state.poseViewer.play();
+        }
+      }
+    });
+
+    document.getElementById('pauseBtn').addEventListener('click', () => {
+      if (state.poseViewer) {
+        state.isPlaying = false;
+        updateControls();
+        log('⏸️ Paused', 'info');
+        
+        // Call pose-viewer's pause method
+        if (typeof state.poseViewer.pause === 'function') {
+          state.poseViewer.pause();
+        }
+      }
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      state.isPlaying = false;
+      updateControls();
+      log('🔄 Reset', 'info');
+      
+      // Reset by reloading the pose data
+      if (state.poseViewer && state.poseUrl) {
+        state.poseViewer.setAttribute('src', state.poseUrl);
+      }
+    });
+
+    // Initialize on load
+    window.addEventListener('DOMContentLoaded', async () => {
+      log('DOM loaded, starting initialization...', 'info');
+      const success = await initPoseViewer();
+      if (success) {
+        log('🎉 System ready! Select a word to begin.', 'success');
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="/text-to-sign-language/components/visualizer-styles.css">
+  <style>
+    body { background: #f0f0f0; padding: 40px; }
+    .test-container { background: white; padding: 20px; border-radius: 10px; }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <h1>Avatar Test</h1>
+    <div class="sign-visual">
+      <div class="avatar-sign-container">
+        <div class="animated-avatar wave-animation">
+          <div class="avatar-head">
+            <div class="avatar-face">
+              <div class="avatar-eyes">
+                <div class="eye left"></div>
+                <div class="eye right"></div>
+              </div>
+              <div class="avatar-mouth"></div>
+            </div>
+          </div>
+          <div class="avatar-torso"></div>
+          <div class="avatar-arms">
+            <div class="arm left-arm neutral-left wave">
+              <div class="hand">👋</div>
+            </div>
+            <div class="arm right-arm neutral-right wave">
+              <div class="hand">👋</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="/text-to-sign-language/components/ASL_Database.js"></script>
+  <script src="/text-to-sign-language/components/SignLanguageVisualizer.js"></script>
+</body>
+</html>

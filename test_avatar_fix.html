@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Avatar Test - HELLO Sign</title>
+  <style>
+    body {
+      margin: 0;
+      background: #0a0e1a;
+      color: white;
+      font-family: system-ui;
+    }
+    #container {
+      width: 100vw;
+      height: 100vh;
+    }
+    #info {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(0,0,0,0.8);
+      padding: 15px;
+      border-radius: 8px;
+      font-size: 14px;
+      max-width: 400px;
+    }
+    button {
+      background: #22c55e;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #16a34a;
+    }
+  </style>
+</head>
+<body>
+  <div id="container"></div>
+  <div id="info">
+    <h3>🎯 Avatar Scale Fix Test</h3>
+    <p><strong>OLD:</strong> VIEW_SCALE = 5 (spider web mess)</p>
+    <p><strong>NEW:</strong> VIEW_SCALE = 1.4 (proper size)</p>
+    <button onclick="testHello()">▶ Test HELLO Sign</button>
+    <div id="status" style="margin-top: 10px; color: #22c55e;"></div>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.module.js';
+    window.THREE = THREE;
+  </script>
+  <script src="/text-to-sign-language/components/ThreeIKAvatar.js?v=FIXED"></script>
+  
+  <script>
+    let avatar = null;
+    
+    window.addEventListener('load', () => {
+      // Mount avatar
+      avatar = window.VOTEXMediaPipeAvatar.mount('container', {
+        targetFps: 60,
+        avatarScale: 2.9,
+        positionLerp: 0.45,
+        fingerLerp: 0.72
+      });
+      
+      document.getElementById('status').textContent = '✅ Avatar mounted successfully!';
+    });
+    
+    async function testHello() {
+      document.getElementById('status').textContent = '⏳ Loading HELLO sign...';
+      
+      try {
+        const response = await fetch('/api/asl/pose-stream', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            glosses: ['HELLO'],
+            fps: 60,
+            transition_frames: 8,
+            smoothing_engine: 'pose-format'
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+        
+        const payload = await response.json();
+        console.log('Received payload:', payload);
+        
+        const glossKeys = Object.keys(payload.gloss_data || {});
+        if (glossKeys.length === 0) {
+          throw new Error('No gloss data received');
+        }
+        
+        const frames = payload.gloss_data[glossKeys[0]];
+        console.log(`Playing ${frames.length} frames at ${payload.fps} FPS`);
+        
+        // Play the animation
+        window.VOTEXMediaPipeAvatar.setStream(frames, payload.fps || 60);
+        
+        document.getElementById('status').innerHTML = 
+          `✅ Playing HELLO sign!<br>` +
+          `Frames: ${frames.length}<br>` +
+          `FPS: ${payload.fps}<br>` +
+          `<small>Watch for a proper human-shaped avatar, not random lines!</small>`;
+          
+      } catch (error) {
+        console.error('Test failed:', error);
+        document.getElementById('status').textContent = `❌ Error: ${error.message}`;
+      }
+    }
+    
+    window.testHello = testHello;
+  </script>
+</body>
+</html>

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>VOTEX – Text/Speech to Sign Language</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/text-to-sign-language/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="/" class="logo-link">
+        <div class="logo">VO<span>TEX</span></div>
+      </a>
+      <nav class="top-nav">
+        <ul>
+          <li><a href="/text-to-speech">Text to speech</a></li>
+          <li><a href="/speech-to-text">Speech to text</a></li>
+          <li><a href="/translate-and-speak">Translate & Speak</a></li>
+          <li><a href="/text-to-sign-language" class="active">Text to Sign Language</a></li>
+        </ul>
+      </nav>
+      <div class="login-wrap">
+        <button class="login-btn">Login</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-container">
+    <div class="hero">
+      <h1>🤟 Text/Speech to Sign Language</h1>
+      <p>Convert text or speech into sign language representations</p>
+    </div>
+
+    <div class="card">
+      <!-- Sign Language Selection -->
+      <div class="sign-language-selector">
+        <div class="selector-group">
+          <label for="signLanguageSelect">
+            <span class="label-icon">🌐</span>
+            Select Sign Language:
+          </label>
+          <select id="signLanguageSelect" class="sign-select">
+            <option value="asl">ASL - American Sign Language</option>
+            <option value="bsl">BSL - British Sign Language</option>
+            <option value="auslan">Auslan - Australian Sign Language</option>
+            <option value="isl">ISL - Indian Sign Language</option>
+            <option value="jsl">JSL - Japanese Sign Language</option>
+            <option value="fsl">FSL - French Sign Language (LSF)</option>
+            <option value="gsl">GSL - German Sign Language (DGS)</option>
+            <option value="csl">CSL - Chinese Sign Language</option>
+            <option value="rsl">RSL - Russian Sign Language</option>
+            <option value="libras">Libras - Brazilian Sign Language</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Input Mode Selection -->
+      <div class="input-mode-section">
+        <h3>Choose Input Mode</h3>
+        <div class="mode-buttons">
+          <button class="mode-btn active" id="textModeBtn">
+            📝 Type Text
+          </button>
+          <button class="mode-btn" id="speechModeBtn">
+            🎤 Record Speech
+          </button>
+        </div>
+      </div>
+
+      <!-- Text Input Section -->
+      <div class="input-section" id="textInputSection">
+        <div class="input-header">
+          <h3>Enter Text</h3>
+          <div class="input-actions">
+            <button class="icon-btn" id="clearTextBtn" title="Clear text">
+              🗑️ Clear
+            </button>
+          </div>
+        </div>
+        <textarea 
+          id="textInput" 
+          class="text-input" 
+          placeholder="Type any text here and we'll convert it to sign language..."
+          maxlength="200"
+        ></textarea>
+        <div class="char-counter">
+          <span id="charCount">0</span> / 200 characters
+        </div>
+      </div>
+
+      <!-- Speech Input Section -->
+      <div class="input-section speech-section" id="speechInputSection" style="display: none;">
+        <div class="recording-controls">
+          <div class="recording-info">
+            <span class="mic-icon" id="micIcon">🎤</span>
+            <div class="recording-text">
+              <h3>Voice Recording</h3>
+              <p id="recordingStatus">Click start to record your voice</p>
+            </div>
+          </div>
+          <div class="recording-buttons">
+            <button class="btn btn-record" id="startRecordBtn">
+              🎤 Start Recording
+            </button>
+            <button class="btn btn-stop" id="stopRecordBtn" disabled>
+              ⏹️ Stop Recording
+            </button>
+          </div>
+        </div>
+        <div class="recording-banner" id="recordingBanner" style="display: none;">
+          <span class="pulse-dot"></span>
+          <span>RECORDING - Speak clearly!</span>
+          <span class="pulse-dot"></span>
+        </div>
+        <div class="transcription-box">
+          <h4>Transcribed Text:</h4>
+          <div id="transcribedText" class="transcribed-text">
+            Your speech will be transcribed here...
+          </div>
+        </div>
+      </div>
+
+      <!-- Convert Button -->
+      <div class="convert-section">
+        <button class="btn btn-primary btn-convert" id="convertBtn">
+          🔄 Convert to Sign Language
+        </button>
+        <button class="btn btn-secondary" id="playAnimationBtn" disabled>
+          ▶️ Play Animation
+        </button>
+        <button class="btn btn-secondary" id="downloadSignsBtn" disabled>
+          💾 Save Signs
+        </button>
+      </div>
+
+      <!-- Sign Language Display -->
+      <div class="sign-display-section" id="signDisplaySection" style="display: none;">
+        <div class="display-header">
+          <h3>Sign Language Output</h3>
+          <div class="display-info">
+            <span id="currentSignLanguage"></span>
+          </div>
+        </div>
+        
+        <!-- Sign Animation Display -->
+        <div class="sign-animation-container">
+          <div id="signDisplay" class="sign-display">
+            <!-- Signs will be displayed here -->
+          </div>
+        </div>
+
+        <!-- Sign Controls -->
+        <div class="sign-controls">
+          <button class="control-btn" id="prevSignBtn" disabled>
+            ⬅️ Previous
+          </button>
+          <div class="sign-progress">
+            <span id="currentSignIndex">0</span> / <span id="totalSigns">0</span>
+          </div>
+          <button class="control-btn" id="nextSignBtn" disabled>
+            Next ➡️
+          </button>
+        </div>
+
+        <!-- Speed Control -->
+        <div class="speed-control">
+          <label for="speedSlider">Animation Speed:</label>
+          <input type="range" id="speedSlider" min="500" max="3000" value="1500" step="100">
+          <span id="speedValue">1.5s</span>
+        </div>
+      </div>
+
+      <!-- Status Bar -->
+      <div class="status-bar" id="statusBar">
+        <span id="statusText">Select input mode and enter text or record speech</span>
+      </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="features-section">
+      <div class="feature-card">
+        <div class="feature-icon">🤟</div>
+        <h3>Multiple Sign Languages</h3>
+        <p>Support for 10+ sign languages worldwide including ASL, BSL, ISL</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎤</div>
+        <h3>Speech Recognition</h3>
+        <p>Record your voice and convert speech to sign language</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">✋</div>
+        <h3>Visual Fingerspelling</h3>
+        <p>See each letter and word signed clearly</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Adjustable Speed</h3>
+        <p>Control animation speed for learning</p>
+      </div>
+    </div>
+
+    <!-- Info Section -->
+    <div class="info-section">
+      <h3>📚 About Sign Languages</h3>
+      <p>Sign languages are complete, natural languages with their own grammar and syntax. Each country or region typically has its own sign language. This tool provides fingerspelling representations for educational purposes.</p>
+      
+      <div class="supported-languages">
+        <h4>Supported Sign Languages:</h4>
+        <ul>
+          <li><strong>ASL</strong> - Widely used in the USA and Canada</li>
+          <li><strong>BSL</strong> - Used in the United Kingdom</li>
+          <li><strong>Auslan</strong> - Australian Sign Language</li>
+          <li><strong>ISL</strong> - Indian Sign Language</li>
+          <li><strong>JSL</strong> - Japanese Sign Language</li>
+          <li>And 5 more regional sign languages</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>© 2026 VOTEX. All rights reserved. | Promoting accessibility and inclusion</p>
+  </footer>
+
+  <script src="/text-to-sign-language/script.js"></script>
+</body>
+</html>

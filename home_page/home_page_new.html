@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>VOTEX — Home</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="votex-modern.css">
+    <style>
+      /* Small theme adjustments to replace the decorative hex SVG
+         with a cleaner, modern backdrop and improve contrast */
+      .hero-left{color:#f7fffb}
+      .container-hero{padding:64px 28px}
+
+      /* soft background blobs behind the hero */
+      .hero-left::before{
+        content:'';
+        position:absolute;
+        left:-6%;
+        top:6%;
+        width:68%;
+        height:92%;
+        background: radial-gradient(40% 60% at 20% 30%, rgba(123,227,199,0.14), transparent 18%),
+                    radial-gradient(30% 40% at 80% 70%, rgba(91,140,255,0.08), transparent 22%);
+        filter:blur(36px);
+        z-index:1;
+        pointer-events:none;
+        border-radius:28px;
+      }
+
+      /* tighten hero text and button contrast */
+      .hero-content{z-index:2}
+      .hero-sub{color:rgba(255,255,255,0.95)}
+      .cta-btn{background:linear-gradient(90deg,#6f90ff,#58e0b0);color:#031726}
+
+      /* small screens tweaks */
+      @media (max-width:560px){
+        .hero-left::before{display:none}
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <nav class="top-nav">
+          <ul>
+            <li><a href="/text-to-speech">Text to speech</a></li>
+            <li><a href="/speech-to-text">Speech to text</a></li>
+            <li><a href="#">Text to speech in another language</a></li>
+            <li><a href="#">Speech to text in another language</a></li>
+            <li><a href="#">Text to sign language</a></li>
+          </ul>
+        </nav>
+        <div class="login-wrap">
+          <button class="login-btn">Login</button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero container-hero">
+        <div class="hero-left">
+          <!-- Decorative hex SVG removed: replaced by subtle CSS blobs in the head style -->
+
+          <div class="hero-content">
+            <h1>WELCOME</h1>
+            <div class="hero-caption">
+              <p class="hero-sub revealed">Translate freely.</p>
+              <p class="hero-sub revealed">Communicate boldly.</p>
+              <p class="hero-sub revealed">Unite globally.</p>
+            </div>
+            <a class="cta-btn" href="#">Get started — it's free</a>
+          </div>
+        </div>
+
+        <div class="hero-right">
+          <div class="illustration">
+            <img src="illustration.png" alt="Illustration" class="illustration-img">
+          </div>
+        </div>
+      </section>
+
+      <section class="more-info container">
+        <h2>More about VOTEX</h2>
+        <p class="lead">VOTEX helps you translate and communicate across languages and modalities. Explore features below.</p>
+        <div class="info-grid">
+          <div class="card">
+            <h3>Text to Speech</h3>
+            <p>Convert written text into natural-sounding speech quickly, with multiple voices and languages supported.</p>
+          </div>
+          <div class="card">
+            <h3>Speech to Text</h3>
+            <p>Transcribe audio recordings or live speech into accurate text with helpful timestamps and speaker labels.</p>
+          </div>
+          <div class="card">
+            <h3>Language Tools</h3>
+            <p>Translate between languages, get pronunciation help, and access language-specific accessibility tools.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+      </div>
+    </footer>
+
+    <script src="votex-modern.js" defer></script>
+  </body>
+</html>

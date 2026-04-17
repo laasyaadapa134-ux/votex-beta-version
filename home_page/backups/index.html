@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>VOTEX — Home</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="votex.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <nav class="top-nav">
+          <ul>
+            <li><a href="#">Text to speech</a></li>
+            <li><a href="#">Speech to text</a></li>
+            <li><a href="#">Text to speech in another language</a></li>
+            <li><a href="#">Speech to text in another language</a></li>
+            <li><a href="#">Text to sign language</a></li>
+          </ul>
+        </nav>
+        <div class="login-wrap">
+          <button class="login-btn">Login</button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero container-hero">
+        <div class="hero-left">
+          <div class="hex-bg" aria-hidden="true">
+            <!-- Decorative hex shapes arranged to match attachment -->
+            <svg viewBox="0 0 800 600" preserveAspectRatio="xMinYMin meet" class="hex-svg" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+              <!-- Step 2: Increase size — regular yellow hexagon (all sides equal, larger) -->
+              <!-- Center (210,320), radius 320 -->
+              <polygon points="530,320 370,54 50,54 -110,320 50,586 370,586" fill="#F6DE6C" />
+
+
+              <!-- Top-left blue (regular flat-top hexagon with top face at y=0) -->
+              <!-- Center (120,103.923), radius 120 -->
+              <polygon points="240,104 180,208 60,208 0,104 60,0 180,0" fill="#B1D7FC" transform="translate(-60,-80)" />
+
+              <!-- Small green top-center (regular pentagon moved 10px left) -->
+              <polygon points="402,130 333.52,80.25 359.68,-0.25 444.32,-0.25 470.48,80.25" fill="#66BA6D" />
+
+              <!-- Small blue bottom-right -->
+              <polygon points="640,480 590,567 490,567 440,480 490,393 590,393" fill="#B1D7FC" transform="translate(-135,130) translate(540,480) scale(0.8) translate(-540,-480)" />
+
+              <!-- Brown outlined hex frame (regular hexagon moved left 300px to match home.html) -->
+              <polygon points="230,320 70,54 -250,54 -410,320 -250,586 70,586" fill="none" stroke="#912D2F" stroke-width="22" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </div>
+
+          <div class="hero-content">
+            <h1>WELCOME</h1>
+            <div class="hero-caption">
+              <p class="hero-sub">Translate freely.</p>
+              <p class="hero-sub">Communicate boldly.</p>
+              <p class="hero-sub">Unite globally.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-right">
+          <div class="illustration">
+            <img src="illustration.png" alt="Illustration" class="illustration-img">
+          </div>
+        </div>
+      </section>
+
+      <section class="spacer">
+        <!-- optional extra content area -->
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <div class="logo-small">VOTEX</div>
+      </div>
+    </footer>
+
+    <script src="votex.js" defer></script>
+  </body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Language Translator - VOTEX</title>
+  <link rel="stylesheet" href="/text-to-sign-language/styles.css?v=20260321e">
+  <link rel="stylesheet" href="/text-to-sign-language/components/visualizer-styles.css?v=20260321e">
+  <link rel="stylesheet" href="/text-to-sign-language/components/illustrated-video-styles.css?v=20260321e">
+  <link rel="stylesheet" href="/text-to-sign-language/components/SignAvatar.css?v=20260321e">
+  <link rel="stylesheet" href="/text-to-sign-language/components/ThreeIKAvatar.css?v=20260321e">
+</head>
+<body>
+  <div class="container">
+    <header class="site-header">
+      <div class="logo">
+        <h1>🤟 <span class="gradient-text">Sign Translate</span></h1>
+        <p class="tagline">by VOTEX</p>
+      </div>
+      <nav class="top-nav">
+        <a href="/">🏠 Home</a>
+        <a href="/text-to-speech">Text to Speech</a>
+        <a href="/speech-to-text">Speech to Text</a>
+        <a href="/translate-and-speak">Translate & Speak</a>
+        <a href="/text-to-sign-language" class="active">Sign Language</a>
+      </nav>
+    </header>
+
+    <div class="main-layout">
+      <!-- Input Section -->
+      <section class="input-section">
+        <div class="section-header">
+          <h2>Text</h2>
+          <div class="input-mode-toggle">
+            <button id="typeModeBtn" class="toggle-btn active">
+              <span class="icon">⌨️</span> Type
+            </button>
+            <button id="speakModeBtn" class="toggle-btn">
+              <span class="icon">🎤</span> Speak
+            </button>
+          </div>
+        </div>
+
+        <div id="typeInputArea" class="input-area">
+          <textarea 
+            id="textInput" 
+            placeholder="Type text to translate to sign language..."
+            maxlength="500"
+          ></textarea>
+          <div class="input-footer">
+            <span class="char-count"><span id="charCount">0</span> / 500</span>
+            <button id="clearTextBtn" class="icon-btn" title="Clear">🗑️</button>
+          </div>
+        </div>
+
+        <div id="speakInputArea" class="input-area" style="display: none;">
+          <div class="mic-container">
+            <button id="micBtn" class="mic-button">
+              <span class="mic-icon">🎤</span>
+            </button>
+            <div id="micStatus" class="mic-status">Click to start recording</div>
+          </div>
+          <div id="transcriptDisplay" class="transcript-display"></div>
+        </div>
+
+        <div class="language-selector">
+          <label>
+            <span class="selector-icon">🌐</span>
+            Sign Language:
+          </label>
+          <select id="signLanguageSelect">
+            <option value="asl">American Sign Language (ASL)</option>
+            <option value="bsl">British Sign Language (BSL)</option>
+            <option value="auslan">Australian Sign Language (Auslan)</option>
+            <option value="isl">Indian Sign Language (ISL)</option>
+            <option value="jsl">Japanese Sign Language (JSL)</option>
+            <option value="fsl">French Sign Language (FSL)</option>
+            <option value="gsl">German Sign Language (DGS)</option>
+            <option value="csl">Chinese Sign Language (CSL)</option>
+            <option value="rsl">Russian Sign Language (RSL)</option>

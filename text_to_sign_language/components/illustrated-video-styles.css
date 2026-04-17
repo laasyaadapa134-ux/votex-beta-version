@@ -1,0 +1,1006 @@
+/**
+ * Illustrated Video Styles - Transform sign language videos into artistic animations
+ * Multiple visual filter options for beautiful appearance
+ */
+
+/* ==================================================
+   ILLUSTRATED VIDEO CONTAINER
+   ================================================== */
+
+.illustrated-video-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(102, 126, 234, 0.4);
+}
+
+.video-filters-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.sign-video {
+  width: 100%;
+  height: 100%;
+  max-width: 500px;
+  max-height: 500px;
+  object-fit: cover;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+/* ==================================================
+   STYLE 1: CARTOON/COMIC BOOK EFFECT (DEFAULT)
+   ================================================== */
+
+.sign-video.cartoon-style {
+  /* Posterize effect - reduces colors for cartoon look */
+  filter: 
+    contrast(1.4)
+    saturate(1.6)
+    brightness(1.1)
+    hue-rotate(5deg);
+  
+  /* Add cel-shading effect */
+  -webkit-filter: 
+    contrast(1.4)
+    saturate(1.6)
+    brightness(1.1)
+    hue-rotate(5deg);
+  
+  /* Smooth edges */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+.cartoon-style::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1) 0%, transparent 50%),
+    radial-gradient(circle at 70% 70%, rgba(102,126,234,0.1) 0%, transparent 50%);
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+
+/* ==================================================
+   STYLE 2: SKETCH/LINE ART EFFECT
+   ================================================== */
+
+.sign-video.sketch-style {
+  filter: 
+    grayscale(0.3)
+    contrast(1.8)
+    brightness(1.15)
+    drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+  
+  /* Edge enhancement for sketch look */
+  -webkit-filter: 
+    grayscale(0.3)
+    contrast(1.8)
+    brightness(1.15)
+    drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+}
+
+.video-filters-wrapper:has(.sketch-style)::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(255,255,255,0.03) 2px,
+      rgba(255,255,255,0.03) 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 2px,
+      rgba(255,255,255,0.03) 2px,
+      rgba(255,255,255,0.03) 4px
+    );
+  pointer-events: none;
+  z-index: 1;
+  mix-blend-mode: overlay;
+}
+
+/* ==================================================
+   STYLE 3: NEON/GLOWING FUTURISTIC EFFECT
+   ================================================== */
+
+.sign-video.neon-style {
+  filter: 
+    contrast(1.3)
+    saturate(2)
+    brightness(1.2)
+    drop-shadow(0 0 20px rgba(102,126,234,0.8))
+    drop-shadow(0 0 40px rgba(118,75,162,0.6));
+  
+  -webkit-filter: 
+    contrast(1.3)
+    saturate(2)
+    brightness(1.2)
+    drop-shadow(0 0 20px rgba(102,126,234,0.8))
+    drop-shadow(0 0 40px rgba(118,75,162,0.6));
+}
+
+.video-filters-wrapper:has(.neon-style) {
+  background: radial-gradient(circle at center, #1a1a2e 0%, #0f0f1e 100%);
+  box-shadow: 
+    inset 0 0 50px rgba(102,126,234,0.3),
+    inset 0 0 100px rgba(118,75,162,0.2);
+}
+
+.video-filters-wrapper:has(.neon-style)::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: 
+    radial-gradient(circle, rgba(102,126,234,0.1) 0%, transparent 70%);
+  animation: neonPulse 3s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes neonPulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.1);
+  }
+}
+
+/* ==================================================
+   STYLE 4: ORIGINAL (MINIMAL ENHANCEMENT)
+   ================================================== */
+
+.sign-video.original-style {
+  filter: 
+    contrast(1.1)
+    saturate(1.2)
+    brightness(1.05);
+  
+  -webkit-filter: 
+    contrast(1.1)
+    saturate(1.2)
+    brightness(1.05);
+}
+
+/* ==================================================
+   LOADING OVERLAY
+   ================================================== */
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.video-filters-wrapper.loading .loading-overlay {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.loader-spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(255,255,255,0.2);
+  border-top: 4px solid #fff;
+  border-radius: 50%;
+  animation: spinLoader 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spinLoader {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-overlay p {
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 500;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+/* ==================================================
+   EMOJI ILLUSTRATION FALLBACK
+   ================================================== */
+
+.video-fallback {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  z-index: 5;
+}
+
+.emoji-illustration {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  width: 100%;
+  height: 100%;
+}
+
+.sign-visual-compact .emoji-illustration {
+  padding: 1rem;
+  gap: 0.5rem;
+}
+
+.emoji-sign-display {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  animation: slideInScale 0.6s ease-out;
+}
+
+.sign-visual-compact .emoji-sign-display {
+  gap: 0.8rem;
+}
+
+@keyframes slideInScale {
+  0% {
+    transform: translateY(-20px) scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.emoji-icon {
+  font-size: 8rem;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.5));
+}
+
+.sign-visual-compact .emoji-icon {
+  font-size: 4rem;
+}
+
+.emoji-icon.animate-sign {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.5));
+  }
+  50% {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.8));
+  }
+}
+
+.emoji-hands {
+  display: flex;
+  gap: 4rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.sign-visual-compact .emoji-hands {
+  gap: 2rem;
+}
+
+.hand-emoji {
+  font-size: 4rem;
+  animation: handWave 2s ease-in-out infinite;
+  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.2));
+}
+
+.sign-visual-compact .hand-emoji {
+  font-size: 2rem;
+}
+
+.hand-emoji.left {
+  animation-delay: 0s;
+}
+
+.hand-emoji.right {
+  animation-delay: 0.5s;
+}
+
+@keyframes handWave {
+  0%, 100% {
+    transform: rotate(0deg) translateY(0);
+  }
+  25% {
+    transform: rotate(-15deg) translateY(-5px);
+  }
+  75% {
+    transform: rotate(15deg) translateY(-5px);
+  }
+}
+
+.emoji-label {
+  font-size: 2rem;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+.sign-visual-compact .emoji-label {
+  font-size: 1.2rem;
+  letter-spacing: 0.1em;
+  display: none; /* Hide in compact view since we have sign-word-label */
+}
+
+.emoji-description {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+  max-width: 80%;
+  line-height: 1.6;
+  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
+  animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+
+.sign-visual-compact .emoji-description {
+  font-size: 0.75rem;
+  display: none; /* Hide in compact view for cleaner look */
+}
+
+@keyframes fadeInUp {
+  0% {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Position-based emoji animations */
+.emoji-sign-display.neutral-position .emoji-icon {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+.emoji-sign-display.chest-position .emoji-icon,
+.emoji-sign-display.heart-position .emoji-icon {
+  animation: heartBeat 2s ease-in-out infinite;
+}
+
+@keyframes heartBeat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  25%, 75% {
+    transform: scale(1.1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.emoji-sign-display.forehead-position .emoji-icon,
+.emoji-sign-display.head-position .emoji-icon {
+  animation: thinkBounce 2s ease-in-out infinite;
+}
+
+@keyframes thinkBounce {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(5deg);
+  }
+}
+
+.emoji-sign-display.side-position .emoji-icon {
+  animation: sideSwing 2s ease-in-out infinite;
+}
+
+@keyframes sideSwing {
+  0%, 100% {
+    transform: translateX(0) rotate(0deg);
+  }
+  25% {
+    transform: translateX(-10px) rotate(-5deg);
+  }
+  75% {
+    transform: translateX(10px) rotate(5deg);
+  }
+}
+
+/* ==================================================
+   STYLE SELECTOR BUTTONS
+   ================================================== */
+
+.style-selector {
+  position: absolute;
+  bottom: 15px;
+  right: 15px;
+  display: flex;
+  gap: 8px;
+  z-index: 20;
+  background: rgba(0,0,0,0.6);
+  padding: 8px;
+  border-radius: 30px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.style-btn {
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  font-size: 1.3rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(5px);
+}
+
+.style-btn:hover {
+  background: rgba(255,255,255,0.2);
+  transform: scale(1.1);
+  box-shadow: 0 4px 15px rgba(102,126,234,0.4);
+}
+
+.style-btn.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 
+    0 4px 15px rgba(102,126,234,0.6),
+    inset 0 1px 3px rgba(255,255,255,0.3);
+  transform: scale(1.05);
+}
+
+.style-btn:active {
+  transform: scale(0.95);
+}
+
+/* Tooltip for style buttons */
+.style-btn::before {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  background: rgba(0,0,0,0.9);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+.style-btn:hover::before {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-12px);
+}
+
+/* ==================================================
+   VIDEO ERROR STATE
+   ================================================== */
+
+.video-error {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: #fff;
+  font-size: 1.1rem;
+  text-align: center;
+  padding: 2rem;
+  border-radius: 12px;
+}
+
+.video-error::before {
+  content: '⚠️';
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+/* ==================================================
+   PLACEHOLDER FOR MISSING SIGNS
+   ================================================== */
+
+.sign-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+  color: #fff;
+  text-align: center;
+  padding: 2rem;
+  border-radius: 12px;
+}
+
+.placeholder-icon {
+  font-size: 5rem;
+  margin-bottom: 1rem;
+  animation: floatIcon 2s ease-in-out infinite;
+}
+
+@keyframes floatIcon {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.sign-placeholder p {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.sign-placeholder small {
+  font-size: 1rem;
+  opacity: 0.8;
+}
+
+/* ==================================================
+   RESPONSIVE DESIGN
+   ================================================== */
+
+@media (max-width: 768px) {
+  .sign-video {
+    max-width: 100%;
+    max-height: 350px;
+  }
+  
+  .style-selector {
+    bottom: 10px;
+    right: 10px;
+    padding: 6px;
+  }
+  
+  .style-btn {
+    width: 38px;
+    height: 38px;
+    font-size: 1.1rem;
+  }
+  
+  .loader-spinner {
+    width: 50px;
+    height: 50px;
+  }
+}
+
+@media (max-width: 480px) {
+  .style-selector {
+    flex-wrap: wrap;
+    max-width: 100px;
+  }
+  
+  .style-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+  
+  .style-btn::before {
+    display: none;
+  }
+}
+
+/* ==================================================
+   DARK MODE SUPPORT
+   ================================================== */
+
+@media (prefers-color-scheme: dark) {
+  .illustrated-video-container {
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  }
+  
+  .style-btn {
+    background: rgba(255,255,255,0.15);
+  }
+  
+  .style-btn:hover {
+    background: rgba(255,255,255,0.25);
+  }
+}
+
+/* ==================================================
+   SIMPLE CLEAN SIGN DISPLAY - Minimal Design
+   ================================================== */
+
+.simple-sign-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  padding: 2rem;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.simple-sign-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  animation: fadeInSimple 0.5s ease-out;
+}
+
+@keyframes fadeInSimple {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.simple-video-wrapper {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  background: #2a2a3e;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.simple-sign-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: contrast(1.2) saturate(1.3);
+}
+
+.simple-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+}
+
+.simple-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255,255,255,0.2);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spinSimple 1s linear infinite;
+}
+
+@keyframes spinSimple {
+  to { transform: rotate(360deg); }
+}
+
+.simple-fallback {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 4;
+}
+
+.simple-emoji-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.simple-emoji {
+  font-size: 6rem;
+  animation: pulseSimple 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.5));
+}
+
+@keyframes pulseSimple {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.simple-hands {
+  display: flex;
+  gap: 3rem;
+}
+
+.hand-left, .hand-right {
+  font-size: 3rem;
+  animation: waveSimple 1.5s ease-in-out infinite;
+}
+
+.hand-right {
+  animation-delay: 0.3s;
+}
+
+@keyframes waveSimple {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(-20deg);
+  }
+}
+
+.simple-word-label {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: white;
+  text-transform: lowercase;
+  letter-spacing: 0.05em;
+  text-align: center;
+  padding: 0.5rem 1rem;
+  background: rgba(255,255,255,0.1);
+  border-radius: 10px;
+  backdrop-filter: blur(10px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .simple-sign-display {
+    gap: 1.5rem;
+    padding: 1rem;
+  }
+  
+  .simple-video-wrapper {
+    width: 250px;
+    height: 250px;
+  }
+  
+  .simple-word-label {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .simple-video-wrapper {
+    width: 200px;
+    height: 200px;
+  }
+  
+  .simple-emoji {
+    font-size: 4rem;
+  }
+  
+  .simple-hands {
+    gap: 2rem;
+  }
+  
+  .hand-left, .hand-right {
+    font-size: 2rem;
+  }
+}
+
+/* ==================================================
+   SIGN SEQUENCE LAYOUT - Multi-sign display (LEGACY)
+   ================================================== */
+
+.sign-sequence-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  padding: 1rem;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.sign-card {
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 1.5rem;
+  border: 2px solid rgba(255,255,255,0.2);
+  position: relative;
+  transition: all 0.3s ease;
+  animation: slideInCard 0.5s ease-out backwards;
+}
+
+.sign-card:nth-child(1) { animation-delay: 0.05s; }
+.sign-card:nth-child(2) { animation-delay: 0.1s; }
+.sign-card:nth-child(3) { animation-delay: 0.15s; }
+.sign-card:nth-child(4) { animation-delay: 0.2s; }
+.sign-card:nth-child(5) { animation-delay: 0.25s; }
+.sign-card:nth-child(n+6) { animation-delay: 0.3s; }
+
+@keyframes slideInCard {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.sign-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(103, 126, 234, 0.3);
+  border-color: rgba(103, 126, 234, 0.5);
+}
+
+.sign-number {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  width: 35px;
+  height: 35px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 15px rgba(103, 126, 234, 0.4);
+  z-index: 10;
+}
+
+.sign-visual-compact {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 15px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  margin-bottom: 1rem;
+}
+
+.sign-visual-compact .illustrated-video-container {
+  height: 100%;
+  border-radius: 15px;
+}
+
+.sign-visual-compact .video-filters-wrapper {
+  height: 100%;
+  border-radius: 15px;
+}
+
+.sign-visual-compact .sign-video {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+.sign-visual-compact .style-selector {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.4rem;
+  background: rgba(0,0,0,0.7);
+  padding: 0.4rem;
+  border-radius: 25px;
+  z-index: 20;
+}
+
+.sign-visual-compact .style-btn {
+  width: 30px;
+  height: 30px;
+  font-size: 0.9rem;
+  padding: 0;
+}
+
+.sign-word-label {
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  padding: 0.5rem;
+  background: linear-gradient(135deg, rgba(103, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+  border-radius: 10px;
+}
+
+/* Responsive adjustments for sequence */
+@media (max-width: 768px) {
+  .sign-sequence-container {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    padding: 0.5rem;
+  }
+  
+  .sign-card {
+    padding: 1rem;
+  }
+  
+  .sign-word-label {
+    font-size: 1.1rem;
+  }
+  
+  .sign-visual-compact .style-selector {
+    gap: 0.3rem;
+    padding: 0.3rem;
+  }
+  
+  .sign-visual-compact .style-btn {
+    width: 25px;
+    height: 25px;
+    font-size: 0.8rem;
+  }
+}

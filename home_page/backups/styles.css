@@ -1,0 +1,50 @@
+/* Basic reset */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--primary:#0066ff;--muted:#6b7280;--bg:#f7f9fc;--card:#ffffff}
+.container{max-width:1200px;margin:0 auto;padding:0 30px}
+body{font-family: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; color:#111;background:#fff}
+
+.site-header{padding:22px 0}
+.header-inner{display:flex;align-items:center;justify-content:flex-end}
+.top-nav ul{list-style:none;display:flex;gap:36px;margin-left:0;margin-right:156px;flex-wrap:nowrap;white-space:nowrap}
+.top-nav a{color:#111;text-decoration:none;font-weight:700;font-family:'Oswald','Montserrat',sans-serif}
+.top-nav a:hover{color:#2039A6}
+.login-btn{background:#0B3B8C;color:#fff;padding:10px 18px;border-radius:24px;border:0;font-weight:700;width:120px;text-align:center;position:fixed;top:20px;right:20px;z-index:1000}
+
+.container-hero{display:flex;align-items:center;justify-content:space-between;padding:40px 60px}
+.hero-left{position:relative;flex:0 0 46%;min-height:520px}
+.hero-right{flex:0 0 46%;display:flex;align-items:center;justify-content:center}
+
+.hex-bg{position:absolute;left:-60px;top:-40px;width:130%;height:140%;pointer-events:none;overflow:visible;z-index:1}
+.hex-svg{width:110%;height:110%}
+
+.hero-content{position:relative;padding-left:0px;padding-top:160px;margin-left:-20px}
+.hero-content{z-index:2}
+
+.hero-content h1{font-size:88px;letter-spacing:2px;margin-bottom:18px;font-weight:900}
+.hero-sub{font-size:24px;color:#111;margin-left:0;font-family:'Oswald','Montserrat',sans-serif;font-weight:700}
+
+.hero-caption{margin-left:300px;margin-top:60px;font-family:'Oswald','Montserrat',sans-serif}
+
+.illustration{width:520px;height:360px;border:18px solid #0f1720;display:flex;align-items:center;justify-content:center}
+.illustration-img{display:block;transform:translate(-72px,72px)}
+.window-art{width:100%;height:100%;background:linear-gradient(180deg,#dfeeff,#f6f8ff);display:flex;align-items:center;justify-content:center;color:#333;font-weight:700}
+
+.footer-inner{padding:40px 0}
+.logo-small{font-weight:900;color:#C8572A;font-size:36px}
+
+/* Responsive */
+@media (max-width:1000px){
+  .container-hero{flex-direction:column;gap:20px;padding:30px}
+  .hero-left,.hero-right{flex-basis:100%;min-height:280px}
+  .hero-content h1{font-size:48px}
+  .illustration{width:360px;height:260px;border-width:12px}
+  .top-nav ul{gap:18px;font-size:14px}
+}
+
+@media (max-width:560px){
+  .top-nav ul{display:none}
+  .login-btn{padding:8px 12px}
+  .hero-content h1{font-size:36px}
+  .illustration{width:300px;height:200px}
+}

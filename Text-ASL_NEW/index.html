@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text to ASL - VoiceToText Converter</title>
+    <link rel="stylesheet" href="votex-modern.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="animated-background">
+        <div class="circle circle-1"></div>
+        <div class="circle circle-2"></div>
+        <div class="circle circle-3"></div>
+    </div>
+    
+    <header>
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-hands-asl-interpreting"></i>
+                <span>VoiceToText</span>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="/"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="/text-to-sign-language" class="active"><i class="fas fa-sign-language"></i> Text to ASL</a></li>
+                    <li><a href="/speech-to-text"><i class="fas fa-microphone"></i> Speech to Text</a></li>
+                    <li><a href="/text-to-speech"><i class="fas fa-volume-up"></i> Text to Speech</a></li>
+                    <li><a href="/translate-and-speak"><i class="fas fa-language"></i> Translate</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    
+    <main class="container">
+        <div class="hero-section">
+            <div class="hero-icon">
+                <i class="fas fa-sign-language"></i>
+            </div>
+            <h1>Text to ASL Converter</h1>
+            <p class="subtitle">Transform your text into American Sign Language animations instantly</p>
+        </div>
+
+        <section class="input-section">
+            <div class="section-header">
+                <h2><i class="fas fa-keyboard"></i> Enter Your Text</h2>
+            </div>
+            <form id="text-to-asl-form">
+                <div class="input-wrapper">
+                    <textarea id="text-input" placeholder="Type or paste your text here...&#10;Example: Hello, how are you?"></textarea>
+                    <div class="char-count">
+                        <span id="char-counter">0</span> characters
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-play"></i> Convert to ASL
+                    </button>
+                    <button type="button" id="clear-btn" class="btn-secondary">
+                        <i class="fas fa-eraser"></i> Clear
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="output-section">
+            <div class="section-header">
+                <h2><i class="fas fa-video"></i> ASL Animation Output</h2>
+            </div>
+            <div id="asl-output" class="output-container">
+                <canvas id="pose-canvas" width="800" height="600"></canvas>
+                <div id="canvas-placeholder" class="placeholder">
+                    <i class="fas fa-hand-sparkles"></i>
+                    <p>Your ASL animation will appear here</p>
+                    <small>Enter text above and click "Convert to ASL" to begin</small>
+                </div>
+            </div>
+        </section>
+
+        <section class="info-section">
+            <div class="info-card">
+                <i class="fas fa-lightbulb"></i>
+                <h3>How it works</h3>
+                <p>Our system converts your English text into ASL glosses and generates realistic sign language animations using pose data.</p>
+            </div>
+            <div class="info-card">
+                <i class="fas fa-rocket"></i>
+                <h3>Fast & Accurate</h3>
+                <p>Powered by advanced algorithms to deliver smooth, natural sign language animations in real-time.</p>
+            </div>
+            <div class="info-card">
+                <i class="fas fa-universal-access"></i>
+                <h3>Accessible</h3>
+                <p>Making communication barrier-free for the deaf and hard-of-hearing community.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 VoiceToText Converter. Making communication accessible for everyone.</p>
+    </footer>
+
+    <script src="PosePlayer.js"></script>
+    <script src="votex-modern.js"></script>
+</body>
+</html>

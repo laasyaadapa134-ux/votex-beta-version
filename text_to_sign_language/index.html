@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Language Translator - VOTEX</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤟</text></svg>">
+  <link rel="stylesheet" href="/text-to-sign-language/styles.css?v=20260321e">
+  <link rel="stylesheet" href="/text-to-sign-language/components/visualizer-styles.css?v=20260321e">
+  <link rel="stylesheet" href="/text-to-sign-language/components/illustrated-video-styles.css?v=20260321e">
+  <link rel="stylesheet" href="/text-to-sign-language/components/SignAvatar.css?v=20260321e">
+  <link rel="stylesheet" href="/text-to-sign-language/components/ThreeIKAvatar.css?v=20260321e">
+</head>
+<body>
+  <div class="container">
+    <header class="site-header">
+      <div class="logo">
+        <h1>🤟 <span class="gradient-text">Sign Translate</span></h1>
+        <p class="tagline">by VOTEX</p>
+      </div>
+      <nav class="top-nav">
+        <a href="/">🏠 Home</a>
+        <a href="/text-to-speech">Text to Speech</a>
+        <a href="/speech-to-text">Speech to Text</a>
+        <a href="/translate-and-speak">Translate & Speak</a>
+        <a href="/text-to-sign-language" class="active">Sign Language</a>
+      </nav>
+    </header>
+
+    <div class="main-layout">
+      <!-- Input Section -->
+      <section class="input-section">
+        <div class="section-header">
+          <h2>Text</h2>
+          <div class="input-mode-toggle">
+            <button id="typeModeBtn" class="toggle-btn active">
+              <span class="icon">⌨️</span> Type
+            </button>
+            <button id="speakModeBtn" class="toggle-btn">
+              <span class="icon">🎤</span> Speak
+            </button>
+          </div>
+        </div>
+
+        <div id="typeInputArea" class="input-area">
+          <textarea 
+            id="textInput" 
+            placeholder="Type text to translate to sign language..."
+            maxlength="500"
+          ></textarea>
+          <div class="input-footer">
+            <span class="char-count"><span id="charCount">0</span> / 500</span>
+            <button id="clearTextBtn" class="icon-btn" title="Clear">🗑️</button>
+          </div>
+        </div>
+
+        <div id="speakInputArea" class="input-area" style="display: none;">
+          <div class="mic-container">
+            <button id="micBtn" class="mic-button">
+              <span class="mic-icon">🎤</span>
+            </button>
+            <div id="micStatus" class="mic-status">Click to start recording</div>
+          </div>
+          <div id="transcriptDisplay" class="transcript-display"></div>
+        </div>
+
+        <div class="language-selector">
+          <label>
+            <span class="selector-icon">🌐</span>
+            Sign Language:
+          </label>
+          <select id="signLanguageSelect">
+            <option value="asl">American Sign Language (ASL)</option>
+            <option value="bsl">British Sign Language (BSL)</option>
+            <option value="auslan">Australian Sign Language (Auslan)</option>
+            <option value="isl">Indian Sign Language (ISL)</option>
+            <option value="jsl">Japanese Sign Language (JSL)</option>
+            <option value="fsl">French Sign Language (FSL)</option>
+            <option value="gsl">German Sign Language (DGS)</option>
+            <option value="csl">Chinese Sign Language (CSL)</option>
+            <option value="rsl">Russian Sign Language (RSL)</option>
+            <option value="libras">Brazilian Sign Language (Libras)</option>
+          </select>
+        </div>
+
+        <div class="professional-panel">
+          <label class="professional-toggle" for="professionalModeToggle">
+            <input id="professionalModeToggle" type="checkbox" checked>
+            <span>Professional Motion Mode</span>
+          </label>
+          <input id="poseDictionaryPath" class="path-input" type="text" placeholder="Optional pose dictionary path; leave blank to use ASL_POSE_DICTIONARY on the server">
+          <p class="panel-hint">Professional mode tries pose-format smoothing first, then advanced synthesis, then the existing fallback renderer.</p>
+        </div>
+
+        <button id="translateBtn" class="translate-button">
+          <span class="btn-icon">🤟</span>
+          <span class="btn-text">Translate to Signs</span>
+        </button>
+      </section>
+
+      <!-- Sign Display Section -->
+      <section class="sign-section">
+        <div class="section-header">
+          <h2 id="selectedLangDisplay">American Sign Language</h2>
+          <button id="downloadBtn" class="icon-btn" title="Download" style="display: none;">💾</button>
+        </div>
+
+        <div id="signVideoArea" class="sign-video-area">
+          <div class="video-placeholder">
+            <div class="placeholder-content">
+              <div class="placeholder-icon">🤟</div>
+              <h3>Start Translating</h3>
+              <p>Type or speak text to see sign language demonstrations</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="videoControls" class="video-controls" style="display: none;">
+          <div class="current-word-box">
+            <div class="word-label">Current Word:</div>
+            <div id="currentWordDisplay" class="current-word"></div>
+          </div>
+
+          <div class="progress-container">
+            <div class="progress-bar">
+              <div id="progressBar" class="progress-fill"></div>
+            </div>
+            <div class="time-stamps">
+              <span id="currentTime">0:00</span>
+              <span id="totalTime">0:00</span>
+            </div>
+          </div>
+
+          <div class="playback-controls">
+            <button id="restartBtn" class="control-btn" title="Restart">⏮️</button>
+            <button id="prevBtn" class="control-btn" title="Previous">⏪</button>
+            <button id="playPauseBtn" class="control-btn play-btn" title="Play/Pause">
+              <span class="play-icon">▶️</span>
+            </button>
+            <button id="nextBtn" class="control-btn" title="Next">⏩</button>
+            <button id="loopBtn" class="control-btn" title="Loop">🔁</button>
+          </div>
+
+          <div class="speed-selector">
+            <button class="speed-btn" data-speed="0.5">0.5x</button>
+            <button class="speed-btn active" data-speed="1">1x</button>
+            <button class="speed-btn" data-speed="1.5">1.5x</button>
+            <button class="speed-btn" data-speed="2">2x</button>
+          </div>
+
+          <div class="word-chips-container">
+            <div class="chips-header">Word Sequence (<span id="wordCountDisplay">0</span> words)</div>
+            <div id="wordChips" class="word-chips"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <footer class="info-section">
+      <div class="info-cards">
+        <div class="info-card">
+          <div class="card-icon">💬</div>
+          <h3>Natural Signs</h3>
+          <p>Each word shown as an actual sign gesture, not fingerspelling</p>
+        </div>
+        <div class="info-card">
+          <div class="card-icon">🎬</div>
+          <h3>Video Playback</h3>
+          <p>Smooth video-style demonstration with full controls</p>
+        </div>
+        <div class="info-card">
+          <div class="card-icon">🌍</div>
+          <h3>10 Languages</h3>
+          <p>ASL, BSL, Auslan, ISL, JSL, FSL, DGS, CSL, RSL, Libras</p>
+        </div>
+        <div class="info-card">
+          <div class="card-icon">⚡</div>
+          <h3>Interactive</h3>
+          <p>Control speed, loop, navigate between words easily</p>
+        </div>
+      </div>
+      <div class="disclaimer">
+        <p><strong>Note:</strong> This is a demonstration interface. In production, this would connect to a sign language video API or database (e.g., SignWriting, Signbank, or ML-generated signing avatars).</p>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Component Scripts -->
+  <script type="module">
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.module.js';
+    window.THREE = THREE;
+  </script>
+  <script src="/text-to-sign-language/components/ASL_Database.js?v=20260322A"></script>
+  <script src="/text-to-sign-language/components/SignLanguageVisualizer.js?v=20260322A"></script>
+  <script src="/text-to-sign-language/components/SignAvatar.js?v=20260322A"></script>
+  <script src="/text-to-sign-language/components/ThreeIKAvatar.js?v=SIDEKEYINVERT"></script>
+  <script src="/text-to-sign-language/script.js?v=CLEARCACHE"></script>
+</body>
+</html>

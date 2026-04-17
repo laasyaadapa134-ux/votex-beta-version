@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediaPipe Avatar with Fixed Hands</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    h1 {
+      color: #2d3748;
+      margin-bottom: 8px;
+      font-size: 28px;
+    }
+    .subtitle {
+      color: #718096;
+      margin-bottom: 24px;
+    }
+    #viewer {
+      width: 100%;
+      height: 600px;
+      background: #f7fafc;
+      border-radius: 12px;
+      position: relative;
+    }
+    .controls {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    select, button {
+      padding: 12px 24px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    select {
+      background: white;
+      min-width: 200px;
+    }
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+    }
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .status {
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .status.success {
+      background: #c6f6d5;
+      color: #22543d;
+    }
+    .status.error {
+      background: #fed7d7;
+      color: #742a2a;
+    }
+    .status.info {
+      background: #bee3f8;
+      color: #2c5282;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h1>🎭 MediaPipe Sign Language Avatar</h1>
+      <p class="subtitle">Direct Three.js rendering with corrected hand orientation</p>
+      
+      <div id="viewer"></div>
+    </div>
+
+    <div class="card">
+      <div class="controls">
+        <select id="wordSelect">
+          <option value="">-- Select a word --</option>
+          <option value="GOOD">GOOD</option>
+          <option value="HELLO">HELLO</option>
+          <option value="HI">HI</option>
+        </select>
+        <button id="loadBtn">Load & Play</button>
+        <button id="pauseBtn" disabled>Pause</button>
+        <button id="resetBtn" disabled>Reset</button>
+      </div>
+      <div id="status" style="margin-top: 16px;"></div>
+    </div>
+  </div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.150.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    let scene, camera, renderer, controls;
+    let poseData = null;
+    let currentFrame = 0;
+    let isPlaying = false;
+    let animationId = null;
+    let skeleton = null;
+    let connections = [];
+
+    // MediaPipe Pose connections (33 landmarks, indices 0-32)
+    const POSE_CONNECTIONS = [
+      // Face
+      [10, 9], [9, 8], [8, 7], [7, 3], [3, 2], [2, 1], [1, 4], [4, 5], [5, 6],
+      // Arms
+      [11, 12], // Shoulders
+      [11, 13], [13, 15], // Left arm
+      [12, 14], [14, 16], // Right arm
+      // Left hand to wrist connections
+      [15, 17], [15, 19], [15, 21], // Wrist connections
+      // Right hand to wrist connections
+      [16, 18], [16, 20], [16, 22], // Wrist connections
+      // Torso
+      [11, 23], [12, 24], [23, 24],
+      // Legs
+      [23, 25], [24, 26],
+      [25, 27], [26, 28],
+      [27, 29], [28, 30],
+      [29, 31], [30, 32],
+      [27, 31], [28, 32]
+    ];
+
+    // Hand connections (21 landmarks per hand, relative indices 0-20)
+    const HAND_CONNECTIONS = [
+      [0, 1], [1, 2], [2, 3], [3, 4],  // Thumb
+      [0, 5], [5, 6], [6, 7], [7, 8],  // Index
+      [5, 9], [9, 10], [10, 11], [11, 12],  // Middle
+      [9, 13], [13, 14], [14, 15], [15, 16],  // Ring
+      [13, 17], [17, 18], [18, 19], [19, 20],  // Pinky
+      [0, 17]  // Palm
+    ];
+
+    function init() {
+      const container = document.getElementById('viewer');
+      
+      // Scene
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xf7fafc);
+      
+      // Camera
+      camera = new THREE.PerspectiveCamera(
+        50,
+        container.clientWidth / container.clientHeight,
+        0.1,
+        100
+      );
+      camera.position.set(0, 0, 3);
+      
+      // Renderer
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      container.appendChild(renderer.domElement);
+      
+      // Controls
+      controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      
+      // Lighting
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+      scene.add(ambientLight);
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      directionalLight.position.set(1, 1, 1);
+      scene.add(directionalLight);
+      
+      // Grid
+      const gridHelper = new THREE.GridHelper(2, 20, 0xcccccc, 0xeeeeee);
+      scene.add(gridHelper);
+      
+      // Resize handler
+      window.addEventListener('resize', onWindowResize);
+      
+      showStatus('System ready! Select a word to begin.', 'info');
+    }
+
+    function onWindowResize() {
+      const container = document.getElementById('viewer');
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+
+    function createSkeleton() {
+      // Remove old skeleton
+      if (skeleton) {
+        scene.remove(skeleton);
+        skeleton = null;
+      }
+      
+      skeleton = new THREE.Group();
+      
+      // Create spheres for joints
+      const jointGeometry = new THREE.SphereGeometry(0.01, 16, 16);
+      const bodyJointMaterial = new THREE.MeshPhongMaterial({ color: 0x4299e1 });
+      const leftHandJointMaterial = new THREE.MeshPhongMaterial({ color: 0x48bb78 });
+      const rightHandJointMaterial = new THREE.MeshPhongMaterial({ color: 0xf56565 });
+      
+      // 33 pose landmarks
+      for (let i = 0; i < 33; i++) {
+        const joint = new THREE.Mesh(jointGeometry, bodyJointMaterial);
+        joint.visible = false;
+        skeleton.add(joint);
+      }
+      
+      // 21 left hand landmarks
+      for (let i = 0; i < 21; i++) {
+        const joint = new THREE.Mesh(jointGeometry, leftHandJointMaterial);
+        joint.visible = false;
+        skeleton.add(joint);
+      }
+      
+      // 21 right hand landmarks
+      for (let i = 0; i < 21; i++) {
+        const joint = new THREE.Mesh(jointGeometry, rightHandJointMaterial);
+        joint.visible = false;
+        skeleton.add(joint);
+      }
+      
+      // Create lines for connections
+      const lineMaterial = new THREE.LineBasicMaterial({ color: 0x2d3748, linewidth: 2 });
+      
+      connections = [];
+      
+      // Pose connections
+      POSE_CONNECTIONS.forEach(([start, end]) => {
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(6); // 2 points * 3 coordinates
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const line = new THREE.Line(geometry, lineMaterial);
+        connections.push({ line, start, end, type: 'pose' });
+        skeleton.add(line);
+      });
+      
+      // Hand connections
+      const leftHandMaterial = new THREE.LineBasicMaterial({ color: 0x48bb78, linewidth: 3 });
+      const rightHandMaterial = new THREE.LineBasicMaterial({ color: 0xf56565, linewidth: 3 });
+      
+      // Connect left wrist (pose landmark 15) to left hand base (index 33)
+      const leftWristGeometry = new THREE.BufferGeometry();
+      leftWristGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(6), 3));
+      const leftWristLine = new THREE.Line(leftWristGeometry, leftHandMaterial);
+      connections.push({ line: leftWristLine, start: 15, end: 33, type: 'wrist_left' });
+      skeleton.add(leftWristLine);
+      
+      // Connect right wrist (pose landmark 16) to right hand base (index 54)
+      const rightWristGeometry = new THREE.BufferGeometry();
+      rightWristGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(6), 3));
+      const rightWristLine = new THREE.Line(rightWristGeometry, rightHandMaterial);
+      connections.push({ line: rightWristLine, start: 16, end: 54, type: 'wrist_right' });
+      skeleton.add(rightWristLine);
+      
+      // Left hand connections (indices 33-53)
+      HAND_CONNECTIONS.forEach(([start, end]) => {
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(6);
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const line = new THREE.Line(geometry, leftHandMaterial);
+        connections.push({ line, start: start + 33, end: end + 33, type: 'left_hand' });
+        skeleton.add(line);
+      });
+      
+      // Right hand connections (indices 54-74)
+      HAND_CONNECTIONS.forEach(([start, end]) => {
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(6);
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const line = new THREE.Line(geometry, rightHandMaterial);
+        connections.push({ line, start: start + 54, end: end + 54, type: 'right_hand' });
+        skeleton.add(line);
+      });
+      
+      scene.add(skeleton);
+    }
+
+    function updateSkeleton(frame) {
+      if (!skeleton || !frame) return;
+      
+      const joints = [];
+      
+      // Collect pose landmarks (33 points, indices 0-32)
+      if (frame.pose_landmarks && frame.pose_landmarks.length === 33) {
+        joints.push(...frame.pose_landmarks);
+      } else {
+        // Add empty placeholders if no pose landmarks
+        for (let i = 0; i < 33; i++) {
+          joints.push({ x: 0, y: 0, z: 0, visibility: 0 });
+        }
+      }
+      
+      // Collect left hand landmarks (21 points, indices 33-53)
+      if (frame.left_hand_landmarks && frame.left_hand_landmarks.length === 21) {
+        joints.push(...frame.left_hand_landmarks);
+      } else {
+        // Add empty placeholders if no left hand landmarks
+        for (let i = 0; i < 21; i++) {
+          joints.push({ x: 0, y: 0, z: 0, visibility: 0 });
+        }
+      }
+      
+      // Collect right hand landmarks (21 points, indices 54-74)
+      if (frame.right_hand_landmarks && frame.right_hand_landmarks.length === 21) {
+        joints.push(...frame.right_hand_landmarks);
+      } else {
+        // Add empty placeholders if no right hand landmarks
+        for (let i = 0; i < 21; i++) {
+          joints.push({ x: 0, y: 0, z: 0, visibility: 0 });
+        }
+      }
+      
+      // Update joint positions (convert MediaPipe coordinates to Three.js)
+      const numJointsInSkeleton = 75; // 33 + 21 + 21
+      for (let i = 0; i < Math.min(joints.length, numJointsInSkeleton); i++) {
+        const joint = skeleton.children[i];
+        const landmark = joints[i];
+        if (joint && landmark && (landmark.visibility === undefined || landmark.visibility > 0.1)) {
+          // MediaPipe: x right, y down, z forward (depth)
+          // Three.js: x right, y up, z backward
+          joint.position.set(
+            (landmark.x - 0.5) * 2,   // Center and scale
+            -(landmark.y - 0.5) * 2,  // Flip Y and center
+            -landmark.z * 2           // Z depth
+          );
+          joint.visible = true;
+        } else if (joint) {
+          joint.visible = false;
+        }
+      }
+      
+      // Update connection lines
+      connections.forEach(({ line, start, end }) => {
+        if (start < joints.length && end < joints.length) {
+          const startLandmark = joints[start];
+          const endLandmark = joints[end];
+          
+          const startVisible = startLandmark.visibility === undefined || startLandmark.visibility > 0.1;
+          const endVisible = endLandmark.visibility === undefined || endLandmark.visibility > 0.1;
+          
+          if (startVisible && endVisible) {
+            const positions = line.geometry.attributes.position.array;
+            positions[0] = (startLandmark.x - 0.5) * 2;
+            positions[1] = -(startLandmark.y - 0.5) * 2;
+            positions[2] = -startLandmark.z * 2;
+            positions[3] = (endLandmark.x - 0.5) * 2;
+            positions[4] = -(endLandmark.y - 0.5) * 2;
+            positions[5] = -endLandmark.z * 2;
+            
+            line.geometry.attributes.position.needsUpdate = true;
+            line.visible = true;
+          } else {
+            line.visible = false;
+          }
+        } else {
+          line.visible = false;
+        }
+      });
+    }
+
+    async function loadPoseData(word) {
+      try {
+        showStatus(`Loading ${word}...`, 'info');
+        
+        const response = await fetch(`/${word}.json`);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
+        poseData = await response.json();
+        currentFrame = 0;
+       createSkeleton();
+        updateSkeleton(poseData.frames[0]);
+        
+        showStatus(`✅ Loaded ${poseData.frames.length} frames at ${poseData.fps} FPS`, 'success');
+        
+        document.getElementById('pauseBtn').disabled = false;
+        document.getElementById('resetBtn').disabled = false;
+        
+        return true;
+      } catch (error) {
+        showStatus(`❌ Error: ${error.message}`, 'error');
+        return false;
+      }
+    }
+
+    function play() {
+      if (!poseData || isPlaying) return;
+      
+      isPlaying = true;
+      const frameTime = 1000 / poseData.fps;
+      let lastTime = performance.now();
+      
+      function animate() {
+        if (!isPlaying) return;
+        
+        const currentTime = performance.now();
+        const elapsed = currentTime - lastTime;
+        
+        if (elapsed >= frameTime) {
+          currentFrame = (currentFrame + 1) % poseData.frames.length;
+          updateSkeleton(poseData.frames[currentFrame]);
+          lastTime = currentTime;
+        }
+        
+        animationId = requestAnimationFrame(animate);
+      }
+      
+      animate();
+    }
+
+    function pause() {
+      isPlaying = false;
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+      }
+    }
+
+    function reset() {
+      pause();
+      currentFrame = 0;
+      if (poseData) {
+        updateSkeleton(poseData.frames[0]);
+      }
+    }
+
+    function showStatus(message, type = 'info') {
+      const statusEl = document.getElementById('status');
+      statusEl.textContent = message;
+      statusEl.className = `status ${type}`;
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    // Event listeners
+    document.getElementById('loadBtn').addEventListener('click', async () => {
+      const word = document.getElementById('wordSelect').value;
+      if (!word) {
+        showStatus('Please select a word', 'error');
+        return;
+      }
+      
+      const loaded = await loadPoseData(word);
+      if (loaded) {
+        play();
+      }
+    });
+
+    document.getElementById('pauseBtn').addEventListener('click', () => {
+      if (isPlaying) {
+        pause();
+        document.getElementById('pauseBtn').textContent = 'Resume';
+      } else {
+        play();
+        document.getElementById('pauseBtn').textContent = 'Pause';
+      }
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', reset);
+
+    // Initialize
+    init();
+    animate();
+  </script>
+</body>
+</html>

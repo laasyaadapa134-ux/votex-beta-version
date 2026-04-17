@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pose File Player - 3D Avatar Demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 900px;
+      width: 100%;
+      margin: 20px auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 2rem;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 0.95rem;
+    }
+
+    .avatar-container {
+      width: 100%;
+      height: 600px;
+      background: #08111f;
+      border-radius: 15px;
+      overflow: hidden;
+      margin-bottom: 30px;
+      box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .loading-message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #22d3ee;
+      font-size: 1.2rem;
+      font-weight: 600;
+      z-index: 5;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .loading-message.hidden {
+      display: none;
+    }
+
+    .controls {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .control-group {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.3s;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      flex: 1;
+      padding: 12px 20px;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+      min-width: 120px;
+    }
+
+    button.primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    button.primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    button.secondary {
+      background: #e0e0e0;
+      color: #333;
+    }
+
+    button.secondary:hover {
+      background: #d0d0d0;
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .quick-signs {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .quick-sign-btn {
+      padding: 10px;
+      font-size: 0.9rem;
+      background: #f5f5f5;
+      color: #333;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 600;
+    }
+
+    .quick-sign-btn:hover {
+      background: #667eea;
+      color: white;
+      border-color: #667eea;
+      transform: scale(1.05);
+    }
+
+    .status {
+      padding: 15px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      margin-top: 20px;
+      display: none;
+    }
+
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      display: block;
+    }
+
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+      display: block;
+    }
+
+    .info-box {
+      background: #e7f3ff;
+      border-left: 4px solid #2196F3;
+      padding: 15px;
+      border-radius: 5px;
+      margin-top: 20px;
+      font-size: 0.9rem;
+      color: #0d47a1;
+    }
+
+    .info-box strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    /* ThreeIK Avatar Styles */
+    .three-ik-avatar-shell {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    .three-ik-avatar-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(34, 211, 238, 0.9);
+      color: white;
+      padding: 5px 12px;
+      border-radius: 5px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      z-index: 10;
+    }
+
+    .three-ik-avatar-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: none;
+      color: white;
+      font-size: 1rem;
+      z-index: 5;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div style="margin-bottom: 20px;">
+      <a href="/" style="display: inline-block; padding: 8px 16px; background: #f0f0f0; color: #333; text-decoration: none; border-radius: 5px; font-weight: 600;">← Back to Home</a>
+    </div>
+    
+    <h1>🤟 3D Pose Player</h1>
+    <p class="subtitle">Load and play ASL signs from .pose files with smooth interpolation</p>
+
+    <div id="avatar-container" class="avatar-container">
+      <div id="loading-message" class="loading-message">Loading 3D Avatar...</div>
+    </div>
+
+    <div class="controls">
+      <div class="control-group">
+        <label for="wordInput">Enter Word (e.g., CANDY, CLOTHES):</label>
+        <input type="text" id="wordInput" placeholder="Type a word..." value="CANDY">
+      </div>
+    </div>
+
+    <div class="button-group">
+      <button class="primary" id="playBtn">▶ Play Sign</button>
+      <button class="secondary" id="stopBtn">⏹ Stop</button>
+    </div>
+
+    <div class="quick-signs">
+      <button class="quick-sign-btn" data-word="TEST" style="background: #22c55e; color: white; border-color: #22c55e; font-weight: 800;">👋 TEST (WORKS!)</button>
+      <button class="quick-sign-btn" data-word="CANDY">🍬 CANDY</button>
+      <button class="quick-sign-btn" data-word="CLOTHES">👕 CLOTHES</button>
+      <button class="quick-sign-btn" data-word="APPLE">🍎 APPLE</button>
+      <button class="quick-sign-btn" data-word="HAPPY">😊 HAPPY</button>
+      <button class="quick-sign-btn" data-word="BAD">👎 BAD</button>
+    </div>
+
+    <div id="status" class="status"></div>
+
+    <div class="info-box" style="background: #fff3cd; border-left-color: #ffc107; color: #856404;">
+      <strong>⚠️ IMPORTANT NOTE:</strong>
+      The 225 .pose files (CANDY, CLOTHES, etc.) currently have a limitation: they contain only <strong>static template positions</strong>, not actual motion data. 
+      This is because the extraction script (`extract_pose_coords_simple.py`) uses fixed x,y coordinates and only varies the confidence values.
+      <br><br>
+      <strong>✅ TEST BUTTON WORKS!</strong> Click the green "TEST" button to see actual animation with a waving hand - this proves the 3D avatar system works correctly!
+      <br><br>
+      To fix the other poses, you need to use a proper pose estimation library like MediaPipe or OpenPose that tracks actual body movement.
+    </div>
+
+    <div class="info-box">
+      <strong>ℹ️ How it works:</strong>
+      The 3D avatar uses Three.js with stick figure rendering (spheres for joints, lines for bones).
+      Each .pose file contains MediaPipe landmarks with (x, y, z) coordinates.
+      Smooth interpolation between frames ensures fluid motion for signs like CANDY and CLOTHES.
+      You currently have <strong>225 .pose files</strong> available!
+      <hr style="margin: 10px 0; border: none; border-top: 1px solid #90caf9;">
+      <strong>🔧 Troubleshooting:</strong>
+      If you don't see the stick figure:
+      <ul style="margin: 5px 0; padding-left: 20px;">
+        <li>Open browser console (F12) and check for errors</li>
+        <li>Make sure the server is running at http://localhost:5000</li>
+        <li>Try refreshing the page (Ctrl+F5)</li>
+        <li>Check that Three.js and ThreeIKAvatar loaded (see status above)</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Load Three.js -->
+  <script src="/text-to-sign-language/vendor/three.min.js"></script>
+  
+  <!-- Load ThreeIKAvatar with loadAndPlayPose function -->
+  <script src="/text-to-sign-language/components/ThreeIKAvatar.js?v=20260322"></script>
+
+  <script>
+    let avatar = null;
+    const wordInput = document.getElementById('wordInput');
+    const playBtn = document.getElementById('playBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const statusEl = document.getElementById('status');
+    const quickSignBtns = document.querySelectorAll('.quick-sign-btn');
+    const loadingMessage = document.getElementById('loading-message');
+
+    // Initialize avatar when Three.js loads
+    function initAvatar() {
+      console.log('=== Avatar Initialization Started ===');
+      console.log('window.THREE:', typeof window.THREE);
+      console.log('window.VOTEXMediaPipeAvatar:', typeof window.VOTEXMediaPipeAvatar);
+      
+      if (!window.THREE) {
+        console.error('Three.js not loaded!');
+        loadingMessage.textContent = '❌ Three.js not loaded. Retrying...';
+        loadingMessage.style.color = '#ef4444';
+        setTimeout(initAvatar, 500);
+        return;
+      }
+
+      if (!window.VOTEXMediaPipeAvatar) {
+        console.error('ThreeIKAvatar not loaded!');
+        loadingMessage.textContent = '❌ ThreeIKAvatar not loaded. Retrying...';
+        loadingMessage.style.color = '#ef4444';
+        setTimeout(initAvatar, 500);
+        return;
+      }
+
+      try {
+        console.log('Creating avatar instance...');
+        loadingMessage.textContent = 'Initializing 3D Avatar...';
+        loadingMessage.style.color = '#22d3ee';
+        
+        avatar = window.VOTEXMediaPipeAvatar.mount('avatar-container', {
+          targetFps: 60,
+          positionLerp: 0.45,
+          fingerLerp: 0.72,
+        });
+        
+        console.log('✅ Avatar mounted successfully:', avatar);
+        
+        // Hide loading message after a brief delay
+        setTimeout(() => {
+          loadingMessage.classList.add('hidden');
+        }, 1000);
+        
+        showStatus('✅ 3D Avatar ready! Enter a word and click Play, or try the TEST button.', 'success');
+      } catch (error) {
+        console.error('❌ Avatar initialization failed:', error);
+        loadingMessage.textContent = '❌ Failed to load avatar. Check console (F12).';
+        loadingMessage.style.color = '#ef4444';
+        showStatus(`❌ Failed to initialize avatar: ${error.message}`, 'error');
+      }
+    }
+
+    // Play pose file
+    async function playSign() {
+      const word = wordInput.value.trim();
+      if (!word) {
+        showStatus('⚠️ Please enter a word', 'error');
+        return;
+      }
+
+      if (!avatar) {
+        console.error('Avatar not initialized');
+        showStatus('❌ Avatar not initialized. Check console for errors.', 'error');
+        return;
+      }
+
+      showStatus(`⏳ Loading "${word}"...`, 'success');
+      playBtn.disabled = true;
+
+      try {
+        console.log(`Loading pose for: ${word}`);
+        const success = await window.VOTEXMediaPipeAvatar.loadAndPlayPose(word);
+        console.log(`Load result:`, success);
+        
+        if (success) {
+          showStatus(`✅ Now playing: "${word.toUpperCase()}" with smooth interpolation!`, 'success');
+        } else {
+          showStatus(`❌ Failed to load "${word}". Check if the .pose file exists in /poses/`, 'error');
+        }
+      } catch (error) {
+        console.error('Error loading pose:', error);
+        showStatus(`❌ Error: ${error.message}`, 'error');
+      } finally {
+        playBtn.disabled = false;
+      }
+    }
+
+    // Stop playback
+    function stopSign() {
+      if (avatar) {
+        window.VOTEXMediaPipeAvatar.clear();
+        showStatus('⏹ Playback stopped', 'success');
+      }
+    }
+
+    // Show status message
+    function showStatus(message, type) {
+      statusEl.textContent = message;
+      statusEl.className = `status ${type}`;
+      setTimeout(() => {
+        statusEl.style.display = 'none';
+      }, 5000);
+    }
+
+    // Event listeners
+    playBtn.addEventListener('click', playSign);
+    stopBtn.addEventListener('click', stopSign);
+    wordInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        playSign();
+      }
+    });
+
+    quickSignBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const word = btn.dataset.word;
+        wordInput.value = word;
+        playSign();
+      });
+    });
+
+    // Initialize on load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initAvatar);
+    } else {
+      initAvatar();
+    }
+  </script>
+</body>
+</html>

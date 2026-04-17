@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Avatar Debug Test</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #1a1a2e;
+      color: white;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #22d3ee;
+    }
+
+    .debug-panel {
+      background: #16213e;
+      border: 2px solid #22d3ee;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .debug-item {
+      margin: 10px 0;
+      padding: 10px;
+      background: #0f3460;
+      border-radius: 5px;
+    }
+
+    .debug-item.success {
+      border-left: 4px solid #22c55e;
+    }
+
+    .debug-item.error {
+      border-left: 4px solid #ef4444;
+    }
+
+    .avatar-container {
+      width: 100%;
+      max-width: 900px;
+      height: 600px;
+      background: #08111f;
+      border: 3px solid #22d3ee;
+      border-radius: 15px;
+      margin: 20px auto;
+      position: relative;
+      overflow: hidden;
+    }
+
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 10px;
+      cursor: pointer;
+      margin: 5px;
+      transition: transform 0.2s;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .button-group {
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    .success-text {
+      color: #22c55e;
+      font-weight: bold;
+    }
+
+    .error-text {
+      color: #ef4444;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔍 Avatar Loading Diagnostic Tool</h1>
+
+  <div class="debug-panel">
+    <h2 style="margin-bottom: 15px;">Loading Status:</h2>
+    <div id="debug-log"></div>
+  </div>
+
+  <div id="avatar-container" class="avatar-container"></div>
+
+  <div class="button-group">
+    <button id="testBtn" disabled>Loading...</button>
+    <button id="resetBtn">Reset & Retry</button>
+  </div>
+
+  <!-- Load Three.js -->
+  <script src="/text-to-sign-language/vendor/three.min.js"></script>
+  
+  <!-- Load ThreeIKAvatar -->
+  <script src="/text-to-sign-language/components/ThreeIKAvatar.js?v=20260322"></script>
+
+  <script>
+    const debugLog = document.getElementById('debug-log');
+    const testBtn = document.getElementById('testBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    let avatar = null;
+
+    function log(message, type = 'info') {
+      const div = document.createElement('div');
+      div.className = `debug-item ${type}`;
+      div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong> - ${message}`;
+      debugLog.appendChild(div);
+      console.log(message);
+      
+      // Auto-scroll to bottom
+      debugLog.scrollTop = debugLog.scrollHeight;
+    }
+
+    function checkDependencies() {
+      log('🔍 Checking dependencies...');
+      
+      // Check Three.js
+      if (typeof window.THREE !== 'undefined') {
+        log(`<span class="success-text">✅ Three.js loaded successfully</span> (Version: ${THREE.REVISION})`, 'success');
+      } else {
+        log('<span class="error-text">❌ Three.js NOT loaded</span>', 'error');
+        return false;
+      }
+
+      // Check ThreeIKAvatar
+      if (typeof window.VOTEXMediaPipeAvatar !== 'undefined') {
+        log('<span class="success-text">✅ ThreeIKAvatar loaded successfully</span>', 'success');
+      } else {
+        log('<span class="error-text">❌ ThreeIKAvatar NOT loaded</span>', 'error');
+        return false;
+      }
+
+      // Check container
+      const container = document.getElementById('avatar-container');
+      if (container) {
+        const rect = container.getBoundingClientRect();
+        log(`<span class="success-text">✅ Container found</span> (${rect.width}x${rect.height}px)`, 'success');
+      } else {
+        log('<span class="error-text">❌ Container NOT found</span>', 'error');
+        return false;
+      }
+
+      return true;
+    }
+
+    function initializeAvatar() {
+      log('🚀 Starting avatar initialization...');
+
+      if (!checkDependencies()) {
+        log('<span class="error-text">❌ Dependencies check failed. Please refresh the page.</span>', 'error');
+        return;
+      }
+
+      try {
+        log('📦 Creating avatar instance...');
+        
+        avatar = window.VOTEXMediaPipeAvatar.mount('avatar-container', {
+          targetFps: 60,
+          positionLerp: 0.45,
+          fingerLerp: 0.72,
+        });
+
+        log('<span class="success-text">✅✅✅ AVATAR MOUNTED SUCCESSFULLY!</span>', 'success');
+        log(`Avatar instance created with ${Object.keys(avatar.joints || {}).length} body joints`, 'success');
+        
+        // Check if renderer is working
+        if (avatar.renderer) {
+          const size = avatar.renderer.getSize(new THREE.Vector2());
+          log(`<span class="success-text">✅ Renderer active</span> (${size.x}x${size.y}px)`, 'success');
+        }
+
+        // Check if scene has objects
+        if (avatar.scene) {
+          log(`<span class="success-text">✅ Scene created</span> (${avatar.scene.children.length} objects)`, 'success');
+        }
+
+        // Check camera
+        if (avatar.camera) {
+          const pos = avatar.camera.position;
+          log(`<span class="success-text">✅ Camera positioned</span> at (${pos.x.toFixed(2)}, ${pos.y.toFixed(2)}, ${pos.z.toFixed(2)})`, 'success');
+        }
+
+        testBtn.disabled = false;
+        testBtn.textContent = '👋 Play TEST Animation';
+        
+      } catch (error) {
+        log(`<span class="error-text">❌ INITIALIZATION FAILED: ${error.message}</span>`, 'error');
+        console.error('Full error:', error);
+      }
+    }
+
+    async function playTest() {
+      if (!avatar) {
+        log('<span class="error-text">Avatar not initialized</span>', 'error');
+        return;
+      }
+
+      try {
+        log('🎬 Loading TEST.pose...');
+        testBtn.disabled = true;
+        testBtn.textContent = 'Loading...';
+
+        const success = await window.VOTEXMediaPipeAvatar.loadAndPlayPose('TEST');
+        
+        if (success) {
+          log('<span class="success-text">✅ TEST animation playing! Watch the avatar wave!</span>', 'success');
+          testBtn.textContent = '✅ Playing!';
+        } else {
+          log('<span class="error-text">❌ Failed to load TEST.pose</span>', 'error');
+          testBtn.textContent = '❌ Load Failed';
+        }
+      } catch (error) {
+        log(`<span class="error-text">❌ Error: ${error.message}</span>`, 'error');
+        testBtn.textContent = '❌ Error';
+      } finally {
+        setTimeout(() => {
+          testBtn.disabled = false;
+          testBtn.textContent = '👋 Play TEST Animation';
+        }, 3000);
+      }
+    }
+
+    function reset() {
+      debugLog.innerHTML = '';
+      log('🔄 Resetting...');
+      
+      if (avatar) {
+        window.VOTEXMediaPipeAvatar.clear();
+        log('Cleared current avatar');
+      }
+      
+      setTimeout(initializeAvatar, 100);
+    }
+
+    // Event listeners
+    testBtn.addEventListener('click', playTest);
+    resetBtn.addEventListener('click', reset);
+
+    // Auto-initialize
+    window.addEventListener('load', () => {
+      log('📄 Page loaded, waiting for scripts...');
+      setTimeout(() => {
+        initializeAvatar();
+      }, 100);
+    });
+  </script>
+</body>
+</html>

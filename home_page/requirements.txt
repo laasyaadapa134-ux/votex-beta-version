@@ -1,0 +1,8 @@
+Flask>=2.0
+requests>=2.25
+python-dotenv>=0.19
+flask-cors>=3.0
+openai-whisper>=20231117
+spacy>=3.7
+pose-format>=0.11
+scipy>=1.11

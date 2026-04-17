@@ -1,0 +1,57 @@
+# How to Get Real ASL Pose Files
+
+## The Problem
+Your current pose_dictionary/ contains demo files with synthetic motion.
+You need real ASL pose files to see meaningful sign language.
+
+## Quick Solution: Manual Download
+
+### Step 1: Visit Hugging Face
+https://huggingface.co/datasets/sign/poses
+
+### Step 2: Browse Files
+Click "Files and versions" to see available .pose files
+
+### Step 3: Download Files
+Download these common words first:
+- HELLO.pose
+- THANK.pose  
+- YOU.pose
+- PLEASE.pose
+- SORRY.pose
+- YES.pose
+- NO.pose
+- GOOD.pose
+- HOW.pose
+- ARE.pose
+
+### Step 4: Save Files
+Save downloaded files to:
+C:\Users\Public\VoiceotTextConverter\pose_dictionary
+
+### Step 5: Restart & Test
+1. Restart Flask server
+2. Refresh browser (Ctrl+Shift+R)
+3. Enable "Professional Motion Mode"
+4. Type "hello thank you"
+5. Watch the 3D avatar!
+
+## Alternative Sources
+
+### GitHub Repository
+https://github.com/sign-language-processing/datasets
+Browse to find .pose files and download them
+
+### ASL Video Sites
+If you find .pose files aren't available:
+1. Download videos from https://www.spreadthesign.com
+2. Use MediaPipe to extract landmarks
+3. Convert to .pose format (requires additional scripts)
+
+## Important
+- Files MUST be named in UPPERCASE (e.g., HELLO.pose not hello.pose)
+- Files MUST have .pose extension
+- Files should be ~15KB each (binary format)
+
+## Need Help?
+Check the main DOWNLOAD_POSE_FILES.md for more detailed instructions.

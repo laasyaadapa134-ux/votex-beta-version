@@ -1,0 +1,14 @@
+## Node
+node_modules/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+
+# Env
+.env
+
+# IDE
+.vscode/

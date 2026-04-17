@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>VOTEX – Speech to Text</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/speech-to-text/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="/" class="logo-link">
+        <div class="logo">VO<span>TEX</span></div>
+      </a>
+      <nav class="top-nav">
+        <ul>
+          <li><a href="/" data-i18n="nav.home">🏠 Home</a></li>
+          <li><a href="/text-to-speech" data-i18n="nav.textToSpeech">Text to speech</a></li>
+          <li><a href="/speech-to-text" class="active" data-i18n="nav.speechToText">Speech to text</a></li>
+          <li><a href="/translate-and-speak" data-i18n="nav.translateSpeak">Translate & Speak</a></li>
+          <li><a href="/text-to-sign-language">Text to Sign Language</a></li>
+        </ul>
+      </nav>
+      <div class="login-wrap">
+        <select id="uiLanguageSelect" class="ui-language-select">
+          <option value="en">🇺🇸 English</option>
+          <option value="es">🇪🇸 Español</option>
+          <option value="fr">🇫🇷 Français</option>
+          <option value="de">🇩🇪 Deutsch</option>
+          <option value="it">🇮🇹 Italiano</option>
+          <option value="pt">🇧🇷 Português</option>
+          <option value="ja">🇯🇵 日本語</option>
+          <option value="zh">🇨🇳 中文</option>
+          <option value="ar">🇸🇦 العربية</option>
+          <option value="hi">🇮🇳 हिन्दी</option>
+        </select>
+        <button class="login-btn" data-i18n="common.login">Login</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-container">
+    <!-- Recording Indicator Banner -->
+    <div id="recordingBanner" class="recording-banner">
+      <div class="banner-content">
+        <span class="recording-icon">🔴</span>
+        <span class="recording-text" data-i18n="banner.recording">RECORDING IN PROGRESS - Speak now!</span>
+        <span class="recording-icon">🔴</span>
+      </div>
+    </div>
+
+    <div class="content-wrapper">
+      <section class="hero-section">
+        <h1 class="page-title" data-i18n="hero.title">Speech to Text</h1>
+        <p class="page-subtitle" data-i18n="hero.subtitle">Convert your voice into text instantly using advanced speech recognition</p>
+      </section>
+
+      <section class="converter-section">
+        <div class="card">
+          <div class="card-header">
+            <h2 data-i18n="card.title">Record Your Voice</h2>
+            <div class="status-indicator" id="statusIndicator">
+              <span class="status-dot"></span>
+              <span class="status-text" data-i18n="status.ready">Ready</span>
+            </div>
+          </div>
+
+          <div class="controls-panel">
+            <div class="audio-settings">
+              <div class="setting-group">
+                <label for="languageSelect" data-i18n="settings.speechLanguage">Speech Language:</label>
+                <select id="languageSelect" class="select-input">
+                  <option value="en-US">English (US)</option>
+                  <option value="en-GB">English (UK)</option>
+                  <option value="es-ES">Spanish</option>
+                  <option value="fr-FR">French</option>
+                  <option value="de-DE">German</option>
+                  <option value="it-IT">Italian</option>
+                  <option value="pt-BR">Portuguese (Brazil)</option>
+                  <option value="ja-JP">Japanese</option>
+                  <option value="zh-CN">Chinese (Mandarin)</option>
+                  <option value="ko-KR">Korean</option>
+                  <option value="ar-SA">Arabic</option>
+                  <option value="hi-IN">Hindi</option>
+                </select>
+              </div>
+
+              <div class="setting-group">
+                <label>
+                  <input type="checkbox" id="continuousMode" checked>
+                  <span data-i18n="settings.continuous">Continuous Recording</span>
+                </label>
+              </div>
+
+              <div class="setting-group">
+                <label>
+                  <input type="checkbox" id="interimResults" checked>
+                  <span data-i18n="settings.interim">Show Interim Results</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="recording-controls">
+              <button id="startBtn" class="btn btn-primary">
+                <span class="btn-icon">🎤</span>
+                <span data-i18n="buttons.startRecording">Start Recording</span>
+              </button>
+              <button id="stopBtn" class="btn btn-secondary" disabled>
+                <span class="btn-icon">⏹️</span>
+                <span data-i18n="buttons.stopRecording">Stop Recording</span>
+              </button>
+              <button id="clearBtn" class="btn btn-outline">
+                <span class="btn-icon">🗑️</span>
+                <span data-i18n="buttons.clearText">Clear Text</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="audio-visualizer" id="audioVisualizer">
+            <div class="visualizer-bars">
+              <div class="bar"></div>
+              <div class="bar"></div>
+              <div class="bar"></div>
+              <div class="bar"></div>
+              <div class="bar"></div>
+            </div>
+          </div>
+
+          <div class="transcript-container">
+            <div class="transcript-header">
+              <h3 data-i18n="transcript.title">Transcription</h3>
+              <button id="copyBtn" class="btn-icon-only" data-i18n-title="transcript.copy" title="Copy to clipboard">
+                📋
+              </button>
+            </div>
+            <div id="transcriptOutput" class="transcript-output" contenteditable="true" spellcheck="true" data-i18n-placeholder="transcript.placeholder">
+              Your transcribed text will appear here...
+            </div>
+            <div class="transcript-info">
+              <span id="wordCount"><span data-i18n="transcript.words">Words</span>: 0</span>
+              <span id="charCount"><span data-i18n="transcript.characters">Characters</span>: 0</span>
+            </div>
+          </div>
+
+          <div class="action-buttons">
+            <button id="downloadBtn" class="btn btn-outline">
+              <span class="btn-icon">💾</span>
+              <span data-i18n="buttons.downloadTxt">Download as TXT</span>
+            </button>
+            <button id="downloadDocBtn" class="btn btn-outline">
+              <span class="btn-icon">📄</span>
+              <span data-i18n="buttons.downloadDoc">Download as DOC</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="info-panel">
+          <div class="info-card">
+            <h3 data-i18n="tips.title">Tips for Best Results</h3>
+            <ul>
+              <li data-i18n="tips.tip1">Speak clearly and at a moderate pace</li>
+              <li data-i18n="tips.tip2">Minimize background noise</li>
+              <li data-i18n="tips.tip3">Use a good quality microphone</li>
+              <li data-i18n="tips.tip4">Position the microphone 6-12 inches from your mouth</li>
+              <li data-i18n="tips.tip5">Speak punctuation (e.g., say "period" or "comma")</li>
+            </ul>
+          </div>
+
+          <div class="info-card">
+            <h3 data-i18n="features.title">Features</h3>
+            <ul>
+              <li data-i18n="features.feature1">✅ Real-time transcription</li>
+              <li data-i18n="features.feature2">✅ Multiple language support</li>
+              <li data-i18n="features.feature3">✅ Continuous recording mode</li>
+              <li data-i18n="features.feature4">✅ Interim results preview</li>
+              <li data-i18n="features.feature5">✅ Editable output</li>
+              <li data-i18n="features.feature6">✅ Export to TXT/DOC formats</li>
+            </ul>
+          </div>
+
+          <div class="info-card warning">
+            <h3 data-i18n="compatibility.title">⚠️ Browser Compatibility</h3>
+            <p data-i18n="compatibility.message">This feature requires a modern browser with Web Speech API support (Chrome, Edge, Safari).</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p data-i18n="footer.copyright">&copy; 2026 VOTEX. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="/speech-to-text/script.js"></script>
+</body>
+</html>

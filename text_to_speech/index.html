@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>VOTEX – Text to Speech</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #10b981;
+    --primary-dark: #059669;
+    --primary-light: #ecfdf5;
+    --dark: #065f46;
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --text: #0f172a;
+    --text-soft: #475569;
+    --border: #e2e8f0;
+    --shadow: 0 25px 50px -12px rgba(16,185,129,0.25);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg,#071126 0%, #0ea5a4 60%);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  header {
+    background: var(--dark);
+    color: white;
+    padding: 1.2rem 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 300;
+  }
+  .logo { font-size: 1.9rem; font-weight: 700; letter-spacing: -1px; }
+  .logo span { color: var(--primary); }
+
+  /* homepage-like nav helpers */
+  .site-header { background: var(--dark); }
+  .header-inner { display:flex; align-items:center; justify-content:space-between; gap:1rem; max-width:1200px; margin:0 auto; width:100%; }
+  .logo-link { display:flex; align-items:center; gap:0.6rem; color:inherit; text-decoration:none; }
+  .nav-logo { height:34px; display:inline-block; }
+  .top-nav ul { list-style:none; display:flex; gap:1rem; margin:0; padding:0; }
+  .top-nav a { color: white; text-decoration:none; opacity:0.95; padding:6px 10px; border-radius:8px; font-weight:600; }
+  .top-nav a:hover { background: rgba(255,255,255,0.05); opacity:1; }
+  .login-btn { background: transparent; border:1px solid rgba(255,255,255,0.12); color:white; padding:0.5rem 0.9rem; border-radius:10px; cursor:pointer; }
+
+  .hero {
+    background: linear-gradient(135deg, var(--dark), #0f766e);
+    color: white;
+    padding: 5rem 5% 7rem; /* increased bottom padding so card sits nicely */
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -40px;
+    left: 0; right: 0;
+    height: 100px;
+    background: var(--surface);
+    border-radius: 50% 50% 0 0;
+    pointer-events: none;
+  }
+  .hero h1 { font-size: 3.4rem; margin-bottom: 1rem; font-weight: 800; }
+  .hero p { font-size: 1.35rem; opacity: 0.95; max-width: 720px; margin: 0 auto; }
+
+  .card {
+    max-width: 960px;
+    margin: -2.5rem auto 5rem; /* MOVED FORWARD — was -4rem, now -2.5rem */
+    background: var(--surface);
+    border-radius: 24px;
+    box-shadow: var(--shadow);
+    overflow: visible;
+    transition: all 0.3s ease;
+    transform: translateY(0);
+    position: relative;
+    z-index: 1000;
+  }
+  .card:hover {
+    transform: translateY(-8px); /* subtle lift on hover */
+    box-shadow: 0 30px 60px -15px rgba(16,185,129,0.3);
+  }
+
+  .controls {
+    padding: 2rem 2.5rem;
+    background: var(--primary-light);
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+  }
+  .control { flex: 1; min-width: 240px; }
+  label { font-weight: 600; margin-bottom: 8px; display: block; color: #334155; }
+  select, textarea {
+    width: 100%;
+    padding: 1rem 1.2rem;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    font-size: 1.05rem;
+  }
+  select:focus, textarea:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(16,185,129,0.18);
+  }
+  .input-area { padding: 2.5rem; }
+  textarea { min-height: 220px; resize: vertical; font-size: 1.15rem; line-height: 1.6; }
+  .actions {
+    padding: 0 2.5rem 2.5rem;
+    display: flex;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+  }
+  button {
+    padding: 1rem 2.2rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.25s;
+  }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(16,185,129,0.35); }
+  .btn-secondary { background: #e2e8f0; color: #334155; }
+  .status {
+    padding: 1.2rem 2.5rem;
+    background: var(--primary-light);
+    text-align: center;
+    font-weight: 600;
+    color: var(--primary);
+    border-top: 1px solid var(--border);
+  }
+  .wave {
+    height: 5px;
+    background: linear-gradient(90deg, transparent, var(--primary), transparent);
+    animation: wave 1.8s linear infinite;
+    display: none;
+  }
+  .speaking .wave { display: block; }
+  @keyframes wave { 0% { transform: translateX(-100%); } 100% { transform: translateX(400%); } }
+  footer {
+    text-align: center;
+    padding: 2rem;
+    color: #64748b;
+    font-size: 0.95rem;
+  }
+  @media (max-width: 768px) {
+    .controls { flex-direction: column; gap: 1.5rem; }
+    .hero h1 { font-size: 2.5rem; }
+    .card { margin: -2rem auto 4rem; }
+  }
+
+  /* ensure controls and selects are interactive above other elements */
+  .controls, .controls * { pointer-events: auto; }
+  select, textarea, button { position: relative; z-index: 1100; }
+  select { z-index: 99999 !important; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a href="home.html" class="logo-link">
+      <div class="logo"><span>V</span>OTEX</div>
+    </a>
+    <nav class="top-nav">
+      <ul>
+        <li><a href="/">🏠 Home</a></li>
+        <li><a href="/text-to-speech" class="active">Text to speech</a></li>
+        <li><a href="/speech-to-text">Speech to text</a></li>
+        <li><a href="/translate-and-speak">Translate & Speak</a></li>
+        <li><a href="/text-to-sign-language">Text to Sign Language</a></li>
+      </ul>
+    </nav>
+    <div class="login-wrap">
+      <button class="login-btn">Login</button>
+    </div>
+  </div>
+</header>
+
+<div class="hero">
+  <h1 id="heroTitle">Text to Speech</h1>
+  <p id="heroDesc">Turn any text into natural voice.<br>Translate instantly. Speak freely. Connect globally.</p>
+</div>
+
+<div class="card">
+  <div class="controls">
+    <div class="control">
+      <label id="langLabel">Language</label>
+      <select id="targetLang">
+ 
+      </select>
+    </div>
+  </div>
+
+  <div class="input-area">
+    <textarea id="inputText" placeholder="Type or paste your text here..."></textarea>
+  </div>
+
+  <div class="actions">
+    <button class="btn-primary" id="speakBtn">▶ Convert & Speak</button>
+    <button class="btn-secondary" id="stopBtn" style="background: #ef4444;">⏹ Stop</button>
+    <button class="btn-secondary" id="downloadBtn">⬇ Download MP3</button>
+    <button class="btn-secondary" id="uploadBtn">📄 Upload Document</button>
+    <button class="btn-secondary" id="clearBtn">Clear</button>
+    <input type="file" id="fileInput" accept=".txt,.doc,.docx,.pdf" style="display: none;">
+  </div>
+
+  <div class="status" id="status">Ready</div>
+  <div class="wave" id="wave"></div>
+</div>
+
+<footer id="footerText">VOTEX – Translate freely. Communicate boldly. Unite globally.</footer>
+
+<script>
+const languages = [
+  {code:'en-US',name:'English'},
+  {code:'es-ES',name:'Español / Spanish'},
+  {code:'fr-FR',name:'Français / French'},
+  {code:'de-DE',name:'Deutsch / German'},
+  {code:'it-IT',name:'Italiano / Italian'},
+  {code:'pt-BR',name:'Português / Portuguese'},
+  {code:'ru-RU',name:'Русский / Russian'},
+  {code:'zh-CN',name:'中文 / Chinese'},
+  {code:'ja-JP',name:'日本語 / Japanese'},
+  {code:'ko-KR',name:'한국어 / Korean'},
+  {code:'ar-SA',name:'العربية / Arabic'},
+  {code:'hi-IN',name:'हिन्दी / Hindi'},
+  {code:'bn-BD',name:'বাংলা / Bengali'},
+  {code:'ur-PK',name:'اردو / Urdu'},
+  {code:'pa-IN',name:'ਪੰਜਾਬੀ / Punjabi'},
+  {code:'ta-IN',name:'தமிழ் / Tamil'},
+  {code:'te-IN',name:'తెలుగు / Telugu'},
+  {code:'mr-IN',name:'मराठी / Marathi'},
+  {code:'gu-IN',name:'ગુજરાતી / Gujarati'},
+  {code:'kn-IN',name:'ಕನ್ನಡ / Kannada'},
+  {code:'ml-IN',name:'മലയാളം / Malayalam'},
+  {code:'vi-VN',name:'Tiếng Việt / Vietnamese'},
+  {code:'th-TH',name:'ไทย / Thai'},
+  {code:'id-ID',name:'Bahasa Indonesia / Indonesian'},
+  {code:'ms-MY',name:'Bahasa Melayu / Malay'},
+  {code:'tr-TR',name:'Türkçe / Turkish'},
+  {code:'fa-IR',name:'فارسی / Persian'},
+  {code:'pl-PL',name:'Polski / Polish'},
+  {code:'nl-NL',name:'Nederlands / Dutch'},
+  {code:'sv-SE',name:'Svenska / Swedish'},
+  {code:'no-NO',name:'Norsk / Norwegian'},
+  {code:'da-DK',name:'Dansk / Danish'},
+  {code:'fi-FI',name:'Suomi / Finnish'},
+  {code:'el-GR',name:'Ελληνικά / Greek'},
+  {code:'he-IL',name:'עברית / Hebrew'},
+  {code:'cs-CZ',name:'Čeština / Czech'},
+  {code:'sk-SK',name:'Slovenčina / Slovak'},
+  {code:'hu-HU',name:'Magyar / Hungarian'},
+  {code:'ro-RO',name:'Română / Romanian'},
+  {code:'bg-BG',name:'Български / Bulgarian'},
+  {code:'uk-UA',name:'Українська / Ukrainian'},
+  {code:'sr-RS',name:'Српски / Serbian'},
+  {code:'hr-HR',name:'Hrvatski / Croatian'},
+  {code:'sl-SI',name:'Slovenščina / Slovenian'},
+  {code:'bs-BA',name:'Bosanski / Bosnian'},
+  {code:'ca-ES',name:'Català / Catalan'},
+  {code:'gl-ES',name:'Galego / Galician'},
+  {code:'af-ZA',name:'Afrikaans / Afrikaans'}
+];
+
+const targetLang = document.getElementById('targetLang');
+const inputText = document.getElementById('inputText');
+const speakBtn = document.getElementById('speakBtn');
+const stopBtn = document.getElementById('stopBtn');
+const downloadBtn = document.getElementById('downloadBtn');
+const clearBtn = document.getElementById('clearBtn');
+const statusEl = document.getElementById('status');
+
+function populateLanguageSelects() {
+  languages.forEach(lang => {
+    const opt = document.createElement('option');
+    opt.value = lang.code;
+    opt.textContent = lang.name;
+    targetLang.appendChild(opt);
+  });
+  // default selections
+  targetLang.value = 'en-US';
+}
+
+populateLanguageSelects();
+
+// Voice selection removed - system will auto-select best matching voice
+
+// Load voices and ensure they're ready
+let voicesLoaded = false;
+function loadVoices() {
+  return new Promise((resolve) => {
+    let voices = speechSynthesis.getVoices();
+    if (voices.length > 0) {
+      voicesLoaded = true;
+      resolve(voices);
+      return;
+    }
+    
+    speechSynthesis.onvoiceschanged = () => {
+      voices = speechSynthesis.getVoices();
+      voicesLoaded = true;
+      resolve(voices);
+    };
+    
+    // Fallback timeout
+    setTimeout(() => {
+      voices = speechSynthesis.getVoices();
+      voicesLoaded = true;
+      resolve(voices);
+    }, 1000);
+  });
+}
+
+// Initialize voices on page load
+loadVoices();
+
+// --- Text-to-Speech (basic) ---
+async function speakText() {
+  const text = inputText.value.trim();
+  if (!text) {
+    statusEl.textContent = 'Please enter some text.';
+    return;
+  }
+
+  if (!('speechSynthesis' in window)) {
+    statusEl.textContent = 'TTS not supported.';
+    return;
+  }
+
+  speechSynthesis.cancel(); // stop anything previous
+
+  // Ensure voices are loaded
+  let voices = speechSynthesis.getVoices();
+  if (voices.length === 0) {
+    statusEl.textContent = 'Loading voices...';
+    voices = await loadVoices();
+  }
+
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = targetLang.value || 'en-US';
+
+  console.log('speakText — voices available:', voices.length);
+
+  // Auto-select best matching voice
+  const selectedVoice = voices.find(v => v.lang === utter.lang) ||
+                        voices.find(v => v.lang.startsWith(utter.lang.split('-')[0])) ||
+                        voices[0];
+
+  if (selectedVoice) {
+    utter.voice = selectedVoice;
+    console.log('Using voice:', selectedVoice.name, selectedVoice.lang);
+  } else {
+    console.warn('No voice found — browser default will be used');
+  }
+
+  statusEl.textContent = `Speaking (${utter.lang})...`;
+
+  utter.onend = () => { statusEl.textContent = 'Ready'; };
+  utter.onerror = (e) => {
+    console.error('TTS error:', e.error);
+    statusEl.textContent = 'Speech error: ' + (e.error || 'unknown');
+  };
+
+  speechSynthesis.speak(utter);
+}
+
+// --- Download audio as MP3 ---
+async function downloadAudio() {
+  const text = inputText.value.trim();
+  if (!text) {
+    statusEl.textContent = 'Please enter some text.';
+    return;
+  }
+
+  // Check if running from file:// protocol
+  if (window.location.protocol === 'file:') {
+    statusEl.textContent = '⚠️ Download requires a web server. Use "Convert & Speak" to listen, or serve this file via HTTP.';
+    setTimeout(() => { statusEl.textContent = 'Ready'; }, 5000);
+    return;
+  }
+
+  // Check text length (Google TTS has a limit)
+  if (text.length > 200) {
+    statusEl.textContent = 'Text is too long. Please use less than 200 characters for download.';
+    setTimeout(() => { statusEl.textContent = 'Ready'; }, 3000);
+    return;
+  }
+
+  statusEl.textContent = 'Generating audio file...';
+  
+  try {
+    // Get language code
+    const langCode = targetLang.value || 'en-US';
+    const langShort = langCode.split('-')[0];
+    
+    // Try alternative CORS proxies
+    const corsProxies = [
+      'https://corsproxy.io/?',
+      'https://api.codetabs.com/v1/proxy?quest=',
+      'https://cors-anywhere.herokuapp.com/'
+    ];
+    
+    const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${langShort}&q=${encodeURIComponent(text)}`;
+    
+    let response = null;
+    let lastError = null;
+    
+    // Try each proxy
+    for (const proxy of corsProxies) {
+      try {
+        const proxiedUrl = proxy + encodeURIComponent(ttsUrl);
+        response = await fetch(proxiedUrl, {
+          method: 'GET',
+          headers: {
+            'Origin': window.location.origin
+          }
+        });
+        
+        if (response.ok) {
+          break; // Success! Exit loop
+        }
+      } catch (err) {
+        lastError = err;
+        console.warn(`Proxy ${proxy} failed:`, err);
+        continue; // Try next proxy
+      }
+    }
+    
+    if (!response || !response.ok) {
+      throw lastError || new Error('All proxies failed');
+    }
+    
+    // Get the audio blob
+    const audioBlob = await response.blob();
+    
+    // Create download link
+    const url = URL.createObjectURL(audioBlob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `speech_${Date.now()}.mp3`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    statusEl.textContent = 'Audio downloaded successfully!';
+    setTimeout(() => { statusEl.textContent = 'Ready'; }, 2000);
+    
+  } catch (error) {
+    console.error('Download error:', error);
+    statusEl.textContent = '⚠️ Download unavailable. Please use "Convert & Speak" button to listen instead.';
+    setTimeout(() => { statusEl.textContent = 'Ready'; }, 4000);
+  }
+}
+
+// Document upload functionality
+const uploadBtn = document.getElementById('uploadBtn');
+const fileInput = document.getElementById('fileInput');
+
+// Helper function to parse PDF files
+async function parsePDF(file) {
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  let fullText = '';
+  
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const textContent = await page.getTextContent();
+    const pageText = textContent.items.map(item => item.str).join(' ');
+    fullText += pageText + '\n';
+  }
+  
+  return fullText;
+}
+
+// Helper function to parse DOCX files
+async function parseDOCX(file) {
+  const arrayBuffer = await file.arrayBuffer();
+  const result = await mammoth.extractRawText({ arrayBuffer });
+  return result.value;
+}
+
+uploadBtn.addEventListener('click', () => {
+  fileInput.click();
+});
+
+fileInput.addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  statusEl.textContent = 'Loading document...';
+  
+  try {
+    let text = '';
+    
+    // Read text files directly
+    if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
+      text = await file.text();
+    }
+    // Handle PDF files
+    else if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+      statusEl.textContent = 'Parsing PDF...';
+      text = await parsePDF(file);
+    }
+    // Handle Word DOCX files
+    else if (file.name.endsWith('.docx')) {
+      statusEl.textContent = 'Parsing Word document...';
+      text = await parseDOCX(file);
+    }
+    // Handle old Word DOC files (try as binary, may not work perfectly)
+    else if (file.name.endsWith('.doc')) {
+      statusEl.textContent = 'Old .doc format detected. For best results, save as .docx or .txt';
+      // Try reading as text (won't work well for binary .doc)
+      try {
+        text = await file.text();
+      } catch (err) {
+        statusEl.textContent = 'Could not read .doc file. Please save as .docx or .txt';
+        setTimeout(() => { statusEl.textContent = 'Ready'; }, 3000);
+        return;
+      }
+    }
+    // Try to read as text for other formats
+    else {
+      try {
+        text = await file.text();
+      } catch (err) {
+        statusEl.textContent = 'Unsupported file format. Use .txt, .pdf, or .docx';
+        setTimeout(() => { statusEl.textContent = 'Ready'; }, 3000);
+        return;
+      }
+    }
+    
+    if (text && text.trim()) {
+      inputText.value = text.trim();
+      statusEl.textContent = `Document loaded: ${file.name}`;
+      
+      // Automatically speak the uploaded text
+      setTimeout(() => {
+        speakText();
+      }, 500);
+    } else {
+      statusEl.textContent = 'Document is empty or unreadable.';
+      setTimeout(() => { statusEl.textContent = 'Ready'; }, 2000);
+    }
+  } catch (error) {
+    console.error('File upload error:', error);
+    statusEl.textContent = 'Error loading document: ' + error.message;
+    setTimeout(() => { statusEl.textContent = 'Ready'; }, 3000);
+  }
+  
+  // Clear file input
+  fileInput.value = '';
+});
+
+// Button event listeners
+speakBtn.addEventListener('click', speakText);
+
+// Stop button - dedicated audio stop
+stopBtn.addEventListener('click', () => {
+  console.log('Stop button clicked');
+  if (window.speechSynthesis) {
+    speechSynthesis.cancel();
+    speechSynthesis.cancel(); // Call twice for reliability
+    setTimeout(() => speechSynthesis.cancel(), 10);
+  }
+  statusEl.textContent = 'Stopped';
+  setTimeout(() => { statusEl.textContent = 'Ready'; }, 500);
+});
+
+downloadBtn.addEventListener('click', downloadAudio);
+
+clearBtn.addEventListener('click', () => { 
+  console.log('Clear button clicked - stopping audio');
+  
+  // Stop speech synthesis multiple times to ensure it stops
+  if (window.speechSynthesis) {
+    speechSynthesis.cancel();
+    speechSynthesis.cancel(); // Call twice for reliability
+    
+    // Force stop after a tiny delay
+    setTimeout(() => {
+      speechSynthesis.cancel();
+    }, 10);
+  }
+  
+  inputText.value = ''; 
+  statusEl.textContent = 'Cleared'; 
+  setTimeout(() => { statusEl.textContent = 'Ready'; }, 500);
+});
+
+// Stop audio when navigating away from page
+window.addEventListener('beforeunload', () => {
+  if (window.speechSynthesis) {
+    speechSynthesis.cancel();
+    speechSynthesis.cancel();
+  }
+});
+
+window.addEventListener('pagehide', () => {
+  if (window.speechSynthesis) {
+    speechSynthesis.cancel();
+    speechSynthesis.cancel();
+  }
+});
+
+// Also stop when user clicks back button or navigates
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && window.speechSynthesis) {
+    speechSynthesis.cancel();
+  }
+});
+
+// initialize UI state
+statusEl.textContent = 'Ready';
+
+// Check if running from file:// and warn about download limitation
+if (window.location.protocol === 'file:') {
+  console.warn('Running from file:// protocol. Download feature will be limited.');
+  // Show a subtle warning that download may not work
+  downloadBtn.title = 'Download requires a web server. Use "Convert & Speak" to listen.';
+}
+
+// ensure voices loaded so speak picks matching voice
+
+
+  // Choose a voice by language and gender heuristics
+  function chooseVoiceFor(voices, langCode, gender) {
+    if (!voices || voices.length === 0) return null;
+    const langPrefix = (langCode || 'en-US').toLowerCase();
+    const shortLang = langPrefix.split('-')[0];
+    const g = (gender || '').toLowerCase();
+    const femaleKeywords = ['female','woman','girl','she','mrs','ms','female'];
+    const maleKeywords = ['male','man','boy','he','mr','male'];
+
+    function nameHasGender(name, checkFemale) {
+      if (!name) return false;
+      const n = name.toLowerCase();
+      const kws = checkFemale ? femaleKeywords : maleKeywords;
+      return kws.some(k => n.includes(k));
+    }
+
+    // 1) exact lang match + gender keyword in name
+    let candidates = voices.filter(v => v.lang && (v.lang.toLowerCase() === langPrefix || v.lang.toLowerCase().startsWith(langPrefix)));
+    if (candidates.length) {
+      const byGender = candidates.find(v => nameHasGender(v.name, g === 'female')) || candidates.find(v => nameHasGender(v.name, g !== 'female'));
+      if (byGender) return byGender;
+    }
+
+    // 2) any voice with language short prefix and gender keyword
+    candidates = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith(shortLang));
+    if (candidates.length) {
+      const byGender = candidates.find(v => nameHasGender(v.name, g === 'female')) || candidates[0];
+      if (byGender) return byGender;
+    }
+
+    // 3) any voice with gender keyword regardless of language
+    const byAnyGender = voices.find(v => nameHasGender(v.name, g === 'female'));
+    if (byAnyGender) return byAnyGender;
+
+    // 4) fallback: first voice that roughly matches language code
+    const rough = voices.find(v => v.lang && v.lang.toLowerCase().startsWith(shortLang));
+    if (rough) return rough;
+
+    // 5) final fallback: first available voice
+    return voices[0];
+  }
+
+// --- UI Translation on language change (uses libretranslate.de) ---
+const uiElements = {
+  heroTitle: document.getElementById('heroTitle'),
+  heroDesc: document.getElementById('heroDesc'),
+  langLabel: document.getElementById('langLabel'),
+  speakBtn: speakBtn,
+  stopBtn: stopBtn,
+  downloadBtn: downloadBtn,
+  clearBtn: clearBtn,
+  inputText: inputText,
+  footerText: document.getElementById('footerText')
+};
+
+// store originals (English) so translations always start from English
+const originals = {};
+Object.keys(uiElements).forEach(key => {
+  const el = uiElements[key];
+  if (!el) return;
+  if (key === 'inputText') {
+    originals[key] = el.placeholder || '';
+  } else if (el.tagName === 'BUTTON' || el.tagName === 'DIV' || el.tagName === 'P' || el.tagName === 'H1' || el.tagName === 'FOOTER' || el.tagName === 'LABEL') {
+    originals[key] = el.textContent.trim();
+  } else {
+    originals[key] = el.textContent.trim();
+  }
+});
+
+async function translateText(text, targetLangShort) {
+  if (!text) return '';
+  if (targetLangShort === 'en') return text;
+  const endpoints = [
+    'https://translate.argosopentech.com/translate',
+    'https://libretranslate.de/translate'
+  ];
+  for (const url of endpoints) {
+    try {
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ q: text, source: 'en', target: targetLangShort, format: 'text' })
+      });
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const data = await resp.json();
+      const translated = data.translatedText || data.translated || data.result || null;
+      if (translated) return translated;
+    } catch (err) {
+      console.warn('Translate endpoint failed', url, err);
+      continue;
+    }
+  }
+  return null; // all endpoints failed
+}
+
+async function translateUI(langCode) {
+  const short = (langCode || 'en-US').split('-')[0];
+  // built-in offline translations (used as first fallback when available)
+  const builtIn = {
+    es: {
+      heroTitle: 'Texto a Voz',
+      heroDesc: 'Convierte cualquier texto en voz natural. Traduce al instante. Habla libremente. Conecta globalmente.',
+      langLabel: 'Idioma',
+      speakBtn: '▶ Convertir y Hablar',
+      stopBtn: '⏹ Detener',
+      downloadBtn: '⬇ Descargar MP3',
+      clearBtn: 'Limpiar',
+      inputText: 'Escribe o pega tu texto aquí...',
+      footerText: 'VOTEX – Traduce libremente. Comunica con valentía.'
+    },
+    fr: {
+      heroTitle: 'Texte en Parole',
+      heroDesc: 'Transformez n’importe quel texte en voix naturelle. Traduisez instantanément. Parlez librement. Connectez-vous globalement.',
+      langLabel: 'Langue',
+
+      speakBtn: '▶ Convertir et Parler',
+      stopBtn: '⏹ Arrêter',
+      downloadBtn: '⬇ Télécharger MP3',
+      clearBtn: 'Effacer',
+      inputText: 'Tapez ou collez votre texte ici...',
+      footerText: 'VOTEX – Traduisez librement. Communiquez avec audace.'
+    },
+    de: {
+      heroTitle: 'Text zu Sprache',
+      heroDesc: 'Verwandle jeden Text in natürliche Stimme. Sofort übersetzen. Frei sprechen. Global verbinden.',
+      langLabel: 'Sprache',
+      speakBtn: '▶ Konvertieren & Sprechen',
+      stopBtn: '⏹ Stoppen',
+      downloadBtn: '⬇ MP3 herunterladen',
+      clearBtn: 'Löschen',
+      inputText: 'Geben Sie Ihren Text hier ein oder fügen Sie ihn ein...',
+      footerText: 'VOTEX – Übersetze frei. Kommuniziere mutig.'
+    },
+    it: {
+      heroTitle: 'Testo in Voce',
+      heroDesc: 'Trasforma qualsiasi testo in voce naturale. Traduce istantaneamente. Parla liberamente. Connettiti globalmente.',
+      langLabel: 'Lingua',
+      speakBtn: '▶ Converti e Parla',
+      stopBtn: '⏹ Fermare',
+      downloadBtn: '⬇ Scarica MP3',
+      clearBtn: 'Cancella',
+      inputText: 'Digita o incolla il tuo testo qui...',
+      footerText: 'VOTEX – Traduci liberamente. Comunica con audacia.'
+    },
+    pt: {
+      heroTitle: 'Texto para Fala',
+      heroDesc: 'Transforme qualquer texto em voz natural. Traduza instantaneamente. Fale livremente. Conecte-se globalmente.',
+      langLabel: 'Idioma',
+      speakBtn: '▶ Converter e Falar',
+      stopBtn: '⏹ Parar',
+      downloadBtn: '⬇ Baixar MP3',
+      clearBtn: 'Limpar',
+      inputText: 'Digite ou cole seu texto aqui...',
+      footerText: 'VOTEX – Traduza livremente. Comunique com coragem.'
+    },
+    ru: {
+      heroTitle: 'Текст в Речь',
+      heroDesc: 'Преобразуйте любой текст в естественную речь. Переводите мгновенно. Говорите свободно. Связывайтесь глобально.',
+      langLabel: 'Язык',
+      speakBtn: '▶ Преобразовать и Произнести',
+      stopBtn: '⏹ Остановить',
+      downloadBtn: '⬇ Скачать MP3',
+      clearBtn: 'Очистить',
+      inputText: 'Введите или вставьте текст здесь...',
+      footerText: 'VOTEX – Переводите свободно. Общайтесь смело.'
+    },
+    zh: {
+      heroTitle: '文字转语音',
+      heroDesc: '将任何文本转换为自然语音。即时翻译。随心说话。全球连接。',
+      langLabel: '语言',
+      speakBtn: '▶ 转换并播放',
+      stopBtn: '⏹ 停止',
+      downloadBtn: '⬇ 下载 MP3',
+      clearBtn: '清除',
+      inputText: '在此输入或粘贴文本...',
+      footerText: 'VOTEX – 自由翻译。大胆沟通。'
+    },
+    ja: {
+      heroTitle: 'テキスト読み上げ',
+      heroDesc: 'テキストを自然な音声に変換します。即時翻訳。自由に話す。世界とつながる。',
+      langLabel: '言語',
+      speakBtn: '▶ 変換して再生',
+      stopBtn: '⏹ 停止',
+      downloadBtn: '⬇ MP3をダウンロード',
+      clearBtn: 'クリア',
+      inputText: 'ここにテキストを入力または貼り付けてください...',
+      footerText: 'VOTEX – 自由に翻訳。大胆に伝える。'
+    },
+    ko: {
+      heroTitle: '텍스트 음성 변환',
+      heroDesc: '텍스트를 자연스러운 음성으로 변환합니다. 즉시 번역. 자유롭게 말하세요. 전 세계와 연결하세요.',
+      langLabel: '언어',
+      speakBtn: '▶ 변환 및 재생',
+      stopBtn: '⏹ 중지',
+      downloadBtn: '⬇ MP3 다운로드',
+      clearBtn: '지우기',
+      inputText: '여기에 텍스트를 입력하거나 붙여넣으세요...',
+      footerText: 'VOTEX – 자유롭게 번역하세요. 대담하게 소통하세요.'
+    },
+    hi: {
+      heroTitle: 'टेक्स्ट से स्पीच',
+      heroDesc: 'किसी भी टेक्स्ट को प्राकृतिक आवाज़ में बदलें। तुरंत अनुवाद करें। आज़ाद होकर बोलें। वैश्विक रूप से जुड़ें।',
+      langLabel: 'भाषा',
+      speakBtn: '▶ कन्वर्ट करें और बोलें',
+      stopBtn: '⏹ रोकें',
+      downloadBtn: '⬇ MP3 डाउनलोड',
+      clearBtn: 'साफ करें',
+      inputText: 'यहाँ अपना टेक्स्ट टाइप या पेस्ट करें...',
+      footerText: 'VOTEX – स्वतंत्र रूप से अनुवाद करें। साहसिक रूप से संवाद करें.'
+    }
+    ,
+    bn: {
+      heroTitle: 'টেক্সট টু স্পিচ',
+      heroDesc: 'যেকোনো টেক্সটকে প্রাকৃতিক কণ্ঠে রূপান্তর করুন। তৎক্ষণাৎ অনুবাদ করুন। স্বাধীনভাবে কথা বলুন। বিশ্বব্যাপী সংযুক্ত হন।',
+      langLabel: 'ভাষা',
+      speakBtn: '▶ রূপান্তর ও বলুন',
+      stopBtn: '⏹ বন্ধ করুন',
+      downloadBtn: '⬇ MP3 ডাউনলোড',
+      clearBtn: 'মুছুন',
+      inputText: 'এখানে টেক্সট টাইপ বা পেস্ট করুন...',
+      footerText: 'VOTEX – স্বাধীনভাবে অনুবাদ করুন। সাহসীভাবে যোগাযোগ করুন।'
+    },
+    ur: {
+      heroTitle: 'ٹیکسٹ ٹو اسپیچ',
+      heroDesc: 'کسی بھی متن کو قدرتی آواز میں تبدیل کریں۔ فوری ترجمہ کریں۔ آزادانہ بولیں۔ بین الاقوامی طور پر جڑیں۔',
+      langLabel: 'زبان',
+      speakBtn: '▶ تبدیل کریں اور بولیں',
+      downloadBtn: '⬇ MP3 ڈاؤن لوڈ',
+      clearBtn: 'صاف کریں',
+      inputText: 'یہاں متن درج یا چسپاں کریں...',
+      footerText: 'VOTEX – آزادانہ ترجمہ کریں۔ جرات مندانہ بات کریں۔'
+    },
+    pa: {
+      heroTitle: 'ਟੈਕਸਟ ਟੂ ਸਪੀਚ',
+      heroDesc: 'ਕਿਸੇ ਵੀ ਟੈਕਸਟ ਨੂੰ ਕੁਦਰਤੀ ਆਵਾਜ਼ ਵਿੱਚ ਬਦਲੋ। ਤੁਰੰਤ ਅਨੁਵਾਦ ਕਰੋ। ਆਜ਼ਾਦੀ ਨਾਲ ਗੱਲ ਕਰੋ। ਗਲੋਬਲ ਤੌਰ ਤੇ ਜੁੜੋ',
+      langLabel: 'ਭਾਸ਼ਾ',
+
+      speakBtn: '▶ ਬਦਲੋ ਅਤੇ ਬੋਲੋ',
+      downloadBtn: '⬇ MP3 ਡਾਊਨਲੋਡ',
+      clearBtn: 'ਸਾਫ਼ ਕਰੋ',
+      inputText: 'ਇਥੇ ਆਪਣੇ ਟੈਕਸਟ ਨੂੰ ਟਾਈਪ ਜਾਂ ਪੇਸਟ ਕਰੋ...',
+      footerText: 'VOTEX – ਆਜ਼ਾਦੀ ਨਾਲ ਅਨੁਵਾਦ ਕਰੋ। ਬਹਾਦਰੀ ਨਾਲ ਸੰਚਾਰ ਕਰੋ।'
+    },
+    ta: {
+      heroTitle: 'உரை முதல் பேச்சு',
+      heroDesc: 'எந்த உரையையும் இயற்கையான குரலாக மாற்றுங்கள். உடனடி மொழிபெயர்ப்பு. சுதந்திரமாக பேசுங்கள். உலகளாவியமாக இணைந்திருங்கள்.',
+      langLabel: 'மொழி',
+      speakBtn: '▶ மாற்றி பேசு',
+      downloadBtn: '⬇ MP3 பதிவிறக்கு',
+      clearBtn: 'துடைவு',
+      inputText: 'இங்கே உங்கள் உரையை தட்டச்சு அல்லது ஒட்டுக...',
+      footerText: 'VOTEX – சுதந்திரமாக மொழிபெயர்த்து தைரியமாக தொடர்பு கொள்ளுங்கள்.'
+    },
+    te: {
+      heroTitle: 'టెక్స్ట్ టు స్పీచ్',
+      heroDesc: 'ఏ టెక్స్ట్‌ను ప్రకృతికమైన స్వరంగా మార్చండి. వెంటనే అనువదించండి. స్వేచ్ఛగా మాట్లాడండి. గ్లోబల్గా కలుసుకోండి.',
+      langLabel: 'భాష',
+      speakBtn: '▶ మార్చండి మరియు మాట్లాడండి',
+      downloadBtn: '⬇ MP3 డౌన్లోడ్',
+      clearBtn: 'సాఫ్ చేయండి',
+      inputText: 'ఇక్కడ మీ టెక్స్ట్‌ని టైప్ లేదా పేస్ట్ చేయండి...',
+      footerText: 'VOTEX – స్వేచ్ఛగా అనువదించండి. ధైర్యంగా కమ్యూనికేట్ చేయండి.'
+    },
+    mr: {
+      heroTitle: 'टेक्स्ट ते स्पीच',
+      heroDesc: 'कोणत्याही मजकुराला नैसर्गिक आवाजेत रूपांतरित करा. तात्काळ अनुवाद करा. मोकळेपणाने बोला. जागतिक स्तरावर कनेक्ट व्हा.',
+      langLabel: 'भाषा',
+      speakBtn: '▶ रूपांतरित करा आणि बोला',
+      downloadBtn: '⬇ MP3 डाउनलोड',
+      clearBtn: 'साफ करा',
+      inputText: 'इथे आपला मजकूर टाइप किंवा पेस्ट करा...',
+      footerText: 'VOTEX – स्वातंत्र्याने अनुवाद करा. धाडसाने संवाद करा.'
+    },
+    gu: {
+      heroTitle: 'ટેક્સ્ટ ટુ સ્પીચ',
+      heroDesc: 'કોઈપણ લખાણને પ્રાકૃતિક ધ્વનીઆવાજમાં રૂપાંતર કરો. તરત અનુવાદ કરો. મુક્તપણે બોલો. વૈશ્વિક રીતે જોડાઓ.',
+      langLabel: 'ભાષા',
+      speakBtn: '▶ રૂપાંતર કરો અને બોલો',
+      downloadBtn: '⬇ MP3 ડાઉનલોડ',
+      clearBtn: 'સાફ કરો',
+      inputText: 'અહીં તમારા લખાણને ટાઇપ કે પેસ્ટ કરો...',
+      footerText: 'VOTEX – મુક્તપણે અનુવાદ કરો. નિઃસંકોચ રીતે સંવાદ કરો.'
+    },
+    kn: {
+      heroTitle: 'ಟೆಕ್ಸ್ಟ್ ಟು ಸ್ಪೀಚ್',
+      heroDesc: 'ಯಾವುದೇ ಪಠ್ಯವನ್ನು ನೈಸರ್ಗಿಕ ಧ್ವನಿಯಾಗಿಸಿರಿ. ತಕ್ಷಣ अनುವಾದ ಮಾಡಿ. ಸ್ವತಂತ್ರವಾಗಿ ಮಾತನಾಡಿ. ಜಾಗತಿಕವಾಗಿ ಸಂಪರ್ಕಿಸಿ.',
+      langLabel: 'ಭಾಷೆ',
+
+      speakBtn: '▶ ಪರಿವರ್ತಿಸಿ ಮತ್ತು ಮಾತನಾಡಿ',
+      downloadBtn: '⬇ MP3 ಡೌನ್ಲೋಡ್',
+      clearBtn: 'ಒಿದ್ದಿಸು',
+      inputText: 'ಇಲ್ಲಿ ನಿಮ್ಮ ಪಠ್ಯವನ್ನು ಟೈಪ್ ಅಥವಾ ಪೇಸ್ಟ್ ಮಾಡಿ...',
+      footerText: 'VOTEX – ಸ್ವತಂತ್ರವಾಗಿ ಅನುವಾದಿಸಿ. ಧೈರ್ಯವಾಗಿ ಸಂವಹನ ಮಾಡಿ.'
+    },
+    ml: {
+      heroTitle: 'ടെക്സ്റ്റ് ടു സ്പീച്ച്',
+      heroDesc: 'എವരെല്ലാം വാചകത്തെയും സ്വാഭാവിക ശബ്ദത്തിലേക്ക് മാറ്റുക. ഉടൻ വിവർത്തനം ചെയ്യുക. സ്വതന്ത്രമായി സംസാരിക്കുക. ആഗോളമായി ബന്ധപ്പെടുക.',
+      langLabel: 'ഭാഷ',
+      speakBtn: '▶ പരിവർത്തനം ചെയ്ത് പറയുക',
+      downloadBtn: '⬇ MP3 ഡൗൺലോഡ്',
+      clearBtn: 'സൂക്ഷിക്കുക',
+      inputText: 'ഇവിടെ നിങ്ങളുടെ വാചകം ടൈപ്പ് അല്ലെങ്കിൽ പേസ്റ്റ് ചെയ്യുക...',
+      footerText: 'VOTEX – സ്വതന്ത്രമായി വിവർത്തനം ചെയ്യുക. ധൈര്യത്തോടെ ആശയവിനിമയം നടത്തുക.'
+    },
+    vi: {
+      heroTitle: 'Chuyển văn bản thành giọng nói',
+      heroDesc: 'Chuyển bất kỳ văn bản nào thành giọng nói tự nhiên. Dịch ngay lập tức. Nói tự do. Kết nối toàn cầu.',
+      langLabel: 'Ngôn ngữ',
+      speakBtn: '▶ Chuyển & Phát',
+      downloadBtn: '⬇ Tải MP3',
+      clearBtn: 'Xóa',
+      inputText: 'Gõ hoặc dán văn bản của bạn ở đây...',
+      footerText: 'VOTEX – Dịch tự do. Giao tiếp táo bạo.'
+    },
+    th: {
+      heroTitle: 'ข้อความเป็นเสียง',
+      heroDesc: 'แปลงข้อความใด ๆ ให้เป็นเสียงที่เป็นธรรมชาติ แปลทันที พูดอย่างอิสระ เชื่อมต่อทั่วโลก',
+      langLabel: 'ภาษา',
+      speakBtn: '▶ แปลงและพูด',
+      downloadBtn: '⬇ ดาวน์โหลด MP3',
+      clearBtn: 'ล้าง',
+      inputText: 'พิมพ์หรือวางข้อความของคุณที่นี่...',
+      footerText: 'VOTEX – แปลอย่างอิสระ ติดต่ออย่างกล้าหาญ.'
+    },
+    id: {
+      heroTitle: 'Teks ke Bicara',
+      heroDesc: 'Ubah teks apa pun menjadi suara alami. Terjemahkan seketika. Berbicara dengan bebas. Terhubung secara global.',
+      langLabel: 'Bahasa',
+      speakBtn: '▶ Konversi & Putar',
+      downloadBtn: '⬇ Unduh MP3',
+      clearBtn: 'Bersihkan',
+      inputText: 'Ketik atau tempel teks Anda di sini...',
+      footerText: 'VOTEX – Terjemahkan dengan bebas. Berkomunikasi dengan berani.'
+    },
+    ms: {
+      heroTitle: 'Teks kepada Ucapan',
+      heroDesc: 'Tukar mana-mana teks kepada suara semula jadi. Terjemah serta-merta. Bercakap dengan bebas. Sambung secara global.',
+      langLabel: 'Bahasa',
+      speakBtn: '▶ Tukar & Main',
+      downloadBtn: '⬇ Muat turun MP3',
+      clearBtn: 'Kosongkan',
+      inputText: 'Taip atau tampal teks anda di sini...',
+      footerText: 'VOTEX – Terjemah dengan bebas. Berkomunikasi dengan berani.'
+    }
+  };
+
+  // if a built-in translation exists, use it immediately
+  if (builtIn[short]) {
+    const t = builtIn[short];
+    Object.keys(t).forEach(key => {
+      const el = uiElements[key];
+      if (!el) return;
+      if (key === 'inputText') el.placeholder = t[key]; else el.textContent = t[key];
+    });
+    statusEl.textContent = 'Ready';
+    return;
+  }
+  // (continue to external translate fallback)
+  statusEl.textContent = 'Translating UI...';
+  const keys = Object.keys(originals);
+  const sep = '|||SEP|||';
+  const combined = keys.map(k => originals[k] || '').join(sep);
+  const translatedCombined = await translateText(combined, short);
+  if (translatedCombined === null) {
+    // revert to English originals on failure
+    keys.forEach(k => {
+      const el = uiElements[k];
+      if (!el) return;
+      if (k === 'inputText') el.placeholder = originals[k]; else el.textContent = originals[k];
+    });
+    statusEl.textContent = 'Translation failed (network). Showing English.';
+    return;
+  }
+  const parts = translatedCombined.split(sep);
+  keys.forEach((k, i) => {
+    const el = uiElements[k];
+    if (!el) return;
+    const t = (parts[i] && parts[i].trim()) || originals[k];
+    if (k === 'inputText') el.placeholder = t; else el.textContent = t;
+  });
+  statusEl.textContent = 'Ready';
+}
+
+// trigger translation when user changes the language selection
+targetLang.addEventListener('change', (e) => {
+  const code = e.target.value;
+
+  document.documentElement.lang = code;   // ADD THIS LINE
+
+  translateUI(code);
+});
+</script>
+
+<!-- External Libraries for Document Parsing -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  // Configure PDF.js worker
+  if (typeof pdfjsLib !== 'undefined') {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+
+</body>
+</html>

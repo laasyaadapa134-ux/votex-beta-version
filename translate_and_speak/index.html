@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>VOTEX – Translate & Speak</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/translate-and-speak/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="/" class="logo-link">
+        <div class="logo">VO<span>TEX</span></div>
+      </a>
+      <nav class="top-nav">
+        <ul>
+          <li><a href="/">🏠 Home</a></li>
+          <li><a href="/text-to-speech">Text to speech</a></li>
+          <li><a href="/speech-to-text">Speech to text</a></li>
+          <li><a href="/translate-and-speak" class="active">Translate & Speak</a></li>
+          <li><a href="/text-to-sign-language">Text to Sign Language</a></li>
+        </ul>
+      </nav>
+      <div class="login-wrap">
+        <button class="login-btn">Login</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-container">
+    <div class="hero">
+      <h1>Translate & Speak</h1>
+      <p>Translate text between languages and convert to natural speech</p>
+    </div>
+
+    <div class="card">
+      <!-- Voice Recording Section -->
+      <div class="voice-recording-section" id="voiceRecordingSection">
+        <div class="recording-controls">
+          <div class="recording-info">
+            <span class="recording-icon" id="recordingIcon">🎤</span>
+            <div class="recording-text-info">
+              <h4>Voice Recording</h4>
+              <p id="recordingStatus">Click record to start speaking</p>
+            </div>
+          </div>
+          <div class="recording-buttons">
+            <button class="btn btn-record" id="startRecordBtn">
+              🎤 Start Recording
+            </button>
+            <button class="btn btn-stop" id="stopRecordBtn" disabled>
+              ⏹️ Stop Recording
+            </button>
+          </div>
+        </div>
+        <div class="recording-banner" id="recordingBanner" style="display: none;">
+          <span class="pulse-dot"></span>
+          <span>RECORDING - Speak now in your selected language!</span>
+          <span class="pulse-dot"></span>
+        </div>
+      </div>
+
+      <!-- Language Selection -->
+      <div class="language-selector-section">
+        <div class="language-group">
+          <label for="sourceLanguage">From Language:</label>
+          <select id="sourceLanguage" class="lang-select">
+            <option value="en">English</option>
+            <option value="es">Spanish</option>
+            <option value="fr">French</option>
+            <option value="de">German</option>
+            <option value="it">Italian</option>
+            <option value="pt">Portuguese</option>
+            <option value="ru">Russian</option>
+            <option value="zh">Chinese</option>
+            <option value="ja">Japanese</option>
+            <option value="ko">Korean</option>
+            <option value="ar">Arabic</option>
+            <option value="hi">Hindi</option>
+            <option value="bn">Bengali</option>
+            <option value="ur">Urdu</option>
+            <option value="pa">Punjabi</option>
+            <option value="ta">Tamil</option>
+            <option value="te">Telugu</option>
+            <option value="mr">Marathi</option>
+            <option value="tr">Turkish</option>
+            <option value="vi">Vietnamese</option>
+            <option value="th">Thai</option>
+            <option value="id">Indonesian</option>
+            <option value="nl">Dutch</option>
+            <option value="pl">Polish</option>
+            <option value="uk">Ukrainian</option>
+          </select>
+        </div>
+
+        <div class="swap-icon" id="swapLanguages" title="Swap languages">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M7 16V4M7 4L3 8M7 4L11 8"/>
+            <path d="M17 8V20M17 20L21 16M17 20L13 16"/>
+          </svg>
+        </div>
+
+        <div class="language-group">
+          <label for="targetLanguage">To Language:</label>
+          <select id="targetLanguage" class="lang-select">
+            <option value="es">Spanish</option>
+            <option value="en">English</option>
+            <option value="fr">French</option>
+            <option value="de">German</option>
+            <option value="it">Italian</option>
+            <option value="pt">Portuguese</option>
+            <option value="ru">Russian</option>
+            <option value="zh">Chinese</option>
+            <option value="ja">Japanese</option>
+            <option value="ko">Korean</option>
+            <option value="ar">Arabic</option>
+            <option value="hi">Hindi</option>
+            <option value="bn">Bengali</option>
+            <option value="ur">Urdu</option>
+            <option value="pa">Punjabi</option>
+            <option value="ta">Tamil</option>
+            <option value="te">Telugu</option>
+            <option value="mr">Marathi</option>
+            <option value="tr">Turkish</option>
+            <option value="vi">Vietnamese</option>
+            <option value="th">Thai</option>
+            <option value="id">Indonesian</option>
+            <option value="nl">Dutch</option>
+            <option value="pl">Polish</option>
+            <option value="uk">Ukrainian</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Input/Output Section -->
+      <div class="translation-container">
+        <!-- Source Text Panel -->
+        <div class="text-panel source-panel">
+          <div class="panel-header">
+            <h3>Original Text</h3>
+            <div class="panel-actions">
+              <button class="icon-btn" id="recordQuickBtn" title="Record voice">
+                🎤 Record
+              </button>
+              <button class="icon-btn" id="uploadBtn" title="Upload document">
+                📄 Upload
+              </button>
+              <button class="icon-btn" id="clearSourceBtn" title="Clear text">
+                🗑️ Clear
+              </button>
+            </div>
+          </div>
+          <textarea 
+            id="sourceText" 
+            class="text-area" 
+            placeholder="Type or paste your text here, or upload a document..."
+            spellcheck="true"
+          ></textarea>
+          <div class="char-count">
+            <span id="sourceCharCount">0</span> characters
+          </div>
+        </div>
+
+        <!-- Target Text Panel -->
+        <div class="text-panel target-panel">
+          <div class="panel-header">
+            <h3>Translated Text</h3>
+            <div class="panel-actions">
+              <button class="icon-btn" id="copyBtn" title="Copy to clipboard">
+                📋 Copy
+              </button>
+              <button class="icon-btn" id="downloadTxtBtn" title="Download as text">
+                💾 Save
+              </button>
+            </div>
+          </div>
+          <textarea 
+            id="targetText" 
+            class="text-area" 
+            placeholder="Translation will appear here..."
+            readonly
+          ></textarea>
+          <div class="char-count">
+            <span id="targetCharCount">0</span> characters
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button class="btn btn-primary" id="translateBtn">
+          🔄 Translate
+        </button>
+        <button class="btn btn-success" id="speakBtn" disabled>
+          🔊 Speak Translation
+        </button>
+        <button class="btn btn-secondary" id="downloadAudioBtn" disabled>
+          ⬇️ Download Audio
+        </button>
+      </div>
+
+      <!-- Status Bar -->
+      <div class="status-bar" id="statusBar">
+        <span id="statusText">Ready to translate</span>
+      </div>
+
+      <!-- Hidden file input -->
+      <input type="file" id="fileInput" accept=".txt,.doc,.docx,.pdf" style="display: none;">
+    </div>
+
+    <!-- Features Section -->
+    <div class="features-section">
+      <div class="feature-card">
+        <div class="feature-icon">🌍</div>
+        <h3>Multi-Language Support</h3>
+        <p>Translate between 25+ languages instantly</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎙️</div>
+        <h3>Natural Voice Output</h3>
+        <p>High-quality text-to-speech in target language</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📄</div>
+        <h3>Document Upload</h3>
+        <p>Upload .txt files for quick translation</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💾</div>
+        <h3>Save & Export</h3>
+        <p>Download translated text and audio files</p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>© 2026 VOTEX. All rights reserved.</p>
+  </footer>
+
+  <script src="/translate-and-speak/script.js"></script>
+</body>
+</html>

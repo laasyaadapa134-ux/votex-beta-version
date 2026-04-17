@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three.js ESM Starter - Neural-Link Avatar</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(10, 14, 31, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(34, 211, 238, 0.4);
+            border-radius: 10px;
+            padding: 20px;
+            min-width: 300px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .controls h3 {
+            color: #22d3ee;
+            font-size: 16px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .input-group {
+            margin-bottom: 12px;
+        }
+
+        .input-group label {
+            display: block;
+            color: #94a3b8;
+            font-size: 11px;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            border-radius: 6px;
+            color: #e0e7ff;
+            font-size: 14px;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #22d3ee;
+            box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.2);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #0ea5e9, #22d3ee);
+            border: none;
+            border-radius: 6px;
+            color: #0a0e1f;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(34, 211, 238, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            margin-top: 12px;
+            padding: 10px;
+            background: rgba(30, 41, 59, 0.6);
+            border-radius: 6px;
+            font-size: 12px;
+            color: #94a3b8;
+            border-left: 3px solid #22d3ee;
+        }
+
+        .status.loading {
+            border-left-color: #f59e0b;
+            color: #fbbf24;
+        }
+
+        .status.error {
+            border-left-color: #ef4444;
+            color: #fca5a5;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-top: 12px;
+        }
+
+        .quick-btn {
+            padding: 8px;
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            border-radius: 4px;
+            color: #a5b4fc;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        .quick-btn:hover {
+            background: rgba(99, 102, 241, 0.4);
+            border-color: #6366f1;
+            color: #e0e7ff;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+
+    <div class="controls">
+        <h3>⬡ Sign Player</h3>
+        <div class="input-group">
+            <label>ASL Word</label>
+            <input type="text" id="word-input" placeholder="E.g., candy, clothes" />
+        </div>
+        <button class="btn" id="play-btn">Play Sign</button>
+        <div class="status" id="status">Ready. Enter a word and click Play.</div>
+        
+        <div class="quick-actions">
+            <button class="quick-btn" data-word="TEST">Test</button>
+            <button class="quick-btn" data-word="CANDY">Candy</button>
+            <button class="quick-btn" data-word="CLOTHES">Clothes</button>
+            <button class="quick-btn" data-word="HELLO">Hello</button>
+            <button class="quick-btn" data-word="PLEASE">Please</button>
+            <button class="quick-btn" data-word="THANK">Thank</button>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import Three.js as ES6 module
+        import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
+
+        console.log('Three.js loaded successfully! Version:', THREE.REVISION);
+
+        // Global variables
+        let scene, camera, renderer;
+
+        /**
+         * Initialize Three.js scene, camera, and renderer
+         */
+        function init() {
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a0e1f);
+            scene.fog = new THREE.Fog(0x0a0e1f, 5, 15);
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(
+                45,
+                window.innerWidth / window.innerHeight,
+                0.1,
+                1000
+            );
+            camera.position.set(0, 1.6, 4);
+            camera.lookAt(0, 1.2, 0);
+
+            // Renderer
+            const container = document.getElementById('canvas-container');
+            renderer = new THREE.WebGLRenderer({ 
+                antialias: true,
+                alpha: false
+            });
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(5, 10, 7.5);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.camera.left = -5;
+            directionalLight.shadow.camera.right = 5;
+            directionalLight.shadow.camera.top = 5;
+            directionalLight.shadow.camera.bottom = -5;
+            scene.add(directionalLight);
+
+            // ========================================
+            // NEURAL-LINK AVATAR CODE
+            // ========================================
+            
+            /**
+             * Neural-Link Skeleton Class
+             * Builds a complete avatar rig with octahedron joints and glass bones
+             */
+            class Skeleton {
+                constructor(scene) {
+                    this.scene = scene;
+                    this.joints = {};
+                    this.bones = [];
+                    this.root = new THREE.Group();
+                    this.scene.add(this.root);
+                    
+                    // Material definitions
+                    this.createMaterials();
+                    
+                    // Build the skeleton hierarchy
+                    this.buildSkeleton();
+                    
+                    console.log('[Skeleton] Built with', Object.keys(this.joints).length, 'joints');
+                }
+                
+                createMaterials() {
+                    // Glowing cyan joint material
+                    this.jointMaterial = new THREE.MeshStandardMaterial({
+                        color: 0x22d3ee,
+                        emissive: 0x0ea5e9,
+                        emissiveIntensity: 0.8,
+                        metalness: 0.7,
+                        roughness: 0.3
+                    });
+                    
+                    // Semi-transparent frosted glass bone material
+                    this.boneMaterial = new THREE.MeshPhysicalMaterial({
+                        color: 0x88aaff,
+                        metalness: 0.1,
+                        roughness: 0.2,
+                        transparent: true,
+                        opacity: 0.5,
+                        transmission: 0.6,
+                        thickness: 0.5,
+                        clearcoat: 1.0,
+                        clearcoatRoughness: 0.3
+                    });
+                    
+                    // Finger materials (smaller, more delicate)
+                    this.fingerJointMaterial = this.jointMaterial.clone();
+                    this.fingerJointMaterial.emissiveIntensity = 0.6;
+                    
+                    this.fingerBoneMaterial = this.boneMaterial.clone();
+                    this.fingerBoneMaterial.opacity = 0.4;
+                }
+                
+                createJoint(size, name, material = null) {
+                    const geometry = new THREE.OctahedronGeometry(size, 0);
+                    const mat = material || this.jointMaterial;
+                    const joint = new THREE.Mesh(geometry, mat);
+                    joint.name = name;
+                    joint.castShadow = true;
+                    this.joints[name] = joint;
+                    return joint;
+                }
+                
+                createBone(length, radiusTop, radiusBottom, startJointName, endJointName) {
+                    const geometry = new THREE.CylinderGeometry(radiusTop, radiusBottom, length, 8, 1);
+                    const bone = new THREE.Mesh(geometry, this.boneMaterial);
+                    bone.castShadow = true;
+                    
+                    const boneInfo = {
+                        mesh: bone,
+                        startJoint: startJointName,
+                        endJoint: endJointName,
+                        length: length
+                    };
+                    
+                    this.bones.push(boneInfo);
+                    return bone;
+                }
+                
+                buildSkeleton() {
+                    // SPINE/TORSO HIERARCHY
+                    const spine = this.createJoint(0.05, 'spine');
+                    spine.position.set(0, 0.85, 0);
+                    this.root.add(spine);
+                    
+                    const chest = this.createJoint(0.06, 'chest');
+                    chest.position.set(0, 1.15, 0);
+                    this.root.add(chest);
+                    
+                    const neck = this.createJoint(0.04, 'neck');
+                    neck.position.set(0, 1.48, 0);
+                    this.root.add(neck);
+                    
+                    // Spine bones
+                    const spineBone = this.createBone(0.3, 0.032, 0.035, 'spine', 'chest');
+                    spineBone.position.copy(spine.position).lerp(chest.position, 0.5);
+                    this.root.add(spineBone);
+                    
+                    const neckBone = this.createBone(0.33, 0.025, 0.028, 'chest', 'neck');
+                    neckBone.position.copy(chest.position).lerp(neck.position, 0.5);
+                    this.root.add(neckBone);
+                    
+                    // HEAD (wireframe icosahedron with glowing core)
+                    const headGroup = new THREE.Group();
+                    headGroup.name = 'head';
+                    
+                    const coreGeo = new THREE.SphereGeometry(0.10, 20, 20);
+                    const coreMat = new THREE.MeshStandardMaterial({
+                        color: 0x22d3ee,
+                        emissive: 0x22d3ee,
+                        emissiveIntensity: 1.5
+                    });
+                    const core = new THREE.Mesh(coreGeo, coreMat);
+                    headGroup.add(core);
+                    
+                    const shellGeo = new THREE.IcosahedronGeometry(0.16, 1);
+                    const shellMat = new THREE.MeshBasicMaterial({
+                        color: 0x22d3ee,
+                        wireframe: true,
+                        transparent: true,
+                        opacity: 0.8
+                    });
+                    const shell = new THREE.Mesh(shellGeo, shellMat);
+                    headGroup.add(shell);
+                    
+                    headGroup.position.set(0, 1.65, 0);
+                    this.root.add(headGroup);
+                    this.joints.head = headGroup;
+                    this.headCore = core;
+                    this.headShell = shell;
+                    
+                    // BUILD ARMS
+                    this.buildArm('left', -1);
+                    this.buildArm('right', 1);
+                    
+                    // BUILD LEGS (simplified - hips, knees, ankles)
+                    this.buildLeg('left', -0.10);
+                    this.buildLeg('right', 0.10);
+                }
+                
+                buildArm(side, xSign) {
+                    const prefix = side;
+                    
+                    // Shoulder
+                    const shoulder = this.createJoint(0.048, `${prefix}Shoulder`);
+                    shoulder.position.set(xSign * 0.20, 1.15, 0);
+                    this.root.add(shoulder);
+                    
+                    // Shoulder connector bone to chest
+                    const shoulderBone = this.createBone(0.15, 0.02, 0.022, 'chest', `${prefix}Shoulder`);
+                    shoulderBone.position.copy(this.joints.chest.position).lerp(shoulder.position, 0.5);
+                    this.root.add(shoulderBone);
+                    
+                    // Elbow
+                    const elbow = this.createJoint(0.042, `${prefix}Elbow`);
+                    elbow.position.set(xSign * 0.42, 0.85, 0.08);
+                    this.root.add(elbow);
+                    
+                    // Upper arm bone
+                    const upperArmBone = this.createBone(0.35, 0.022, 0.018, `${prefix}Shoulder`, `${prefix}Elbow`);
+                    upperArmBone.position.copy(shoulder.position).lerp(elbow.position, 0.5);
+                    this.root.add(upperArmBone);
+                    
+                    // Wrist
+                    const wrist = this.createJoint(0.038, `${prefix}Wrist`);
+                    wrist.position.set(xSign * 0.58, 0.65, 0.15);
+                    this.root.add(wrist);
+                    
+                    // Forearm bone
+                    const forearmBone = this.createBone(0.28, 0.018, 0.015, `${prefix}Elbow`, `${prefix}Wrist`);
+                    forearmBone.position.copy(elbow.position).lerp(wrist.position, 0.5);
+                    this.root.add(forearmBone);
+                    
+                    // BUILD HAND (21 points total)
+                    this.buildHand(side, wrist.position, xSign);
+                }
+                
+                buildHand(side, wristPos, xSign) {
+                    // MediaPipe hand has 21 landmarks:
+                    // 0: Wrist
+                    // 1-4: Thumb (CMC, MCP, IP, Tip)
+                    // 5-8: Index (MCP, PIP, DIP, Tip)
+                    // 9-12: Middle (MCP, PIP, DIP, Tip)
+                    // 13-16: Ring (MCP, PIP, DIP, Tip)
+                    // 17-20: Pinky (MCP, PIP, DIP, Tip)
+                    
+                    const fingers = [
+                        { name: 'thumb', indices: [1, 2, 3, 4], spread: -0.5, length: 0.055 },
+                        { name: 'index', indices: [5, 6, 7, 8], spread: -0.25, length: 0.070 },
+                        { name: 'middle', indices: [9, 10, 11, 12], spread: 0.0, length: 0.075 },
+                        { name: 'ring', indices: [13, 14, 15, 16], spread: 0.25, length: 0.068 },
+                        { name: 'pinky', indices: [17, 18, 19, 20], spread: 0.5, length: 0.060 }
+                    ];
+                    
+                    fingers.forEach(finger => {
+                        let prevJoint = null;
+                        
+                        finger.indices.forEach((mpIndex, segmentIdx) => {
+                            const jointName = `${side}Hand${mpIndex}`;
+                            const progress = segmentIdx / 3;
+                            
+                            // Calculate finger position
+                            const spreadX = Math.sin(finger.spread) * 0.06 * progress;
+                            const extendY = -finger.length * progress;
+                            const extendZ = Math.cos(finger.spread) * 0.03 * progress;
+                            
+                            const joint = this.createJoint(
+                                0.012 * (1 - progress * 0.25),
+                                jointName,
+                                this.fingerJointMaterial
+                            );
+                            joint.position.set(
+                                wristPos.x + (xSign * spreadX),
+                                wristPos.y + extendY - 0.05,
+                                wristPos.z + extendZ + 0.05
+                            );
+                            this.root.add(joint);
+                            
+                            // Create bone to previous joint
+                            if (prevJoint) {
+                                const segmentLength = finger.length / 3;
+                                const bone = this.createBone(
+                                    segmentLength,
+                                    0.008,
+                                    0.006,
+                                    prevJoint.name,
+                                    jointName
+                                );
+                                bone.position.copy(prevJoint.position).lerp(joint.position, 0.5);
+                                this.root.add(bone);
+                            }
+                            
+                            prevJoint = joint;
+                        });
+                    });
+                }
+                
+                buildLeg(side, xOffset) {
+                    const prefix = side;
+                    
+                    // Hips
+                    const hips = this.createJoint(0.045, `${prefix}Hip`);
+                    hips.position.set(xOffset, 0.58, 0);
+                    this.root.add(hips);
+                    
+                    // Hip connector to spine
+                    const hipBone = this.createBone(0.30, 0.028, 0.025, 'spine', `${prefix}Hip`);
+                    hipBone.position.copy(this.joints.spine.position).lerp(hips.position, 0.5);
+                    this.root.add(hipBone);
+                    
+                    // Knee
+                    const knee = this.createJoint(0.042, `${prefix}Knee`);
+                    knee.position.set(xOffset, 0.30, 0);
+                    this.root.add(knee);
+                    
+                    // Thigh bone
+                    const thighBone = this.createBone(0.28, 0.025, 0.020, `${prefix}Hip`, `${prefix}Knee`);
+                    thighBone.position.copy(hips.position).lerp(knee.position, 0.5);
+                    this.root.add(thighBone);
+                    
+                    // Ankle
+                    const ankle = this.createJoint(0.038, `${prefix}Ankle`);
+                    ankle.position.set(xOffset, 0.05, 0.02);
+                    this.root.add(ankle);
+                    
+                    // Shin bone
+                    const shinBone = this.createBone(0.25, 0.020, 0.018, `${prefix}Knee`, `${prefix}Ankle`);
+                    shinBone.position.copy(knee.position).lerp(ankle.position, 0.5);
+                    this.root.add(shinBone);
+                }
+                
+                updateBone(boneInfo) {
+                    const startJoint = this.joints[boneInfo.startJoint];
+                    const endJoint = this.joints[boneInfo.endJoint];
+                    
+                    if (!startJoint || !endJoint) return;
+                    
+                    const bone = boneInfo.mesh;
+                    const direction = new THREE.Vector3().subVectors(
+                        endJoint.position,
+                        startJoint.position
+                    );
+                    
+                    const distance = direction.length();
+                    
+                    // Position at midpoint
+                    bone.position.copy(startJoint.position).add(
+                        direction.clone().multiplyScalar(0.5)
+                    );
+                    
+                    // Scale to match actual distance
+                    bone.scale.y = distance / boneInfo.length;
+                    
+                    // Rotate to point from start to end
+                    bone.quaternion.setFromUnitVectors(
+                        new THREE.Vector3(0, 1, 0),
+                        direction.normalize()
+                    );
+                }
+                
+                /**
+                 * Update skeleton with landmark data
+                 * @param {Array} landmarks - Array of {x, y, z} coordinates
+                 * 
+                 * MediaPipe Pose Landmarks (33 points):
+                 * 0: Nose, 11: Left Shoulder, 12: Right Shoulder
+                 * 13: Left Elbow, 14: Right Elbow, 15: Left Wrist, 16: Right Wrist
+                 * 23: Left Hip, 24: Right Hip, 25: Left Knee, 26: Right Knee
+                 * 27: Left Ankle, 28: Right Ankle
+                 * 
+                 * Plus left_hand_landmarks and right_hand_landmarks (21 each)
+                 */
+                update(landmarks) {
+                    if (!landmarks || !landmarks.pose_landmarks) return;
+                    
+                    const pose = landmarks.pose_landmarks;
+                    const leftHand = landmarks.left_hand_landmarks || [];
+                    const rightHand = landmarks.right_hand_landmarks || [];
+                    
+                    const lerpFactor = 0.25; // Smooth interpolation factor
+                    
+                    // Convert normalized coordinates to 3D world space
+                    const toWorld = (lm, scale = 1.8) => {
+                        if (!lm) return null;
+                        return new THREE.Vector3(
+                            (lm.x - 0.5) * scale,
+                            (1 - lm.y) * scale,
+                            lm.z * scale * 0.5
+                        );
+                    };
+                    
+                    // Map pose landmarks to skeleton joints
+                    const mapping = {
+                        'leftShoulder': 11,
+                        'rightShoulder': 12,
+                        'leftElbow': 13,
+                        'rightElbow': 14,
+                        'leftWrist': 15,
+                        'rightWrist': 16,
+                        'leftHip': 23,
+                        'rightHip': 24,
+                        'leftKnee': 25,
+                        'rightKnee': 26,
+                        'leftAnkle': 27,
+                        'rightAnkle': 28
+                    };
+                    
+                    // Update body joints with smooth lerping (keeps joints visible)
+                    Object.entries(mapping).forEach(([jointName, lmIndex]) => {
+                        if (pose[lmIndex] && this.joints[jointName]) {
+                            const worldPos = toWorld(pose[lmIndex]);
+                            if (worldPos && (pose[lmIndex].visibility || 0) > 0.3) {
+                                // Smooth lerp to target position
+                                this.joints[jointName].position.lerp(worldPos, lerpFactor);
+                            }
+                        }
+                    });
+                    
+                    // Update head with smooth lerping
+                    if (pose[0] && this.joints.head) {
+                        const headPos = toWorld(pose[0]);
+                        if (headPos && (pose[0].visibility || 1) > 0.3) {
+                            headPos.y += 0.15; // Offset for head size
+                            this.joints.head.position.lerp(headPos, lerpFactor);
+                        }
+                    }
+                    
+                    // Update spine and chest based on shoulders and hips
+                    if (this.joints.leftShoulder && this.joints.rightShoulder) {
+                        const chestPos = new THREE.Vector3()
+                            .addVectors(this.joints.leftShoulder.position, this.joints.rightShoulder.position)
+                            .multiplyScalar(0.5);
+                        this.joints.chest.position.copy(chestPos);
+                    }
+                    
+                    if (this.joints.leftHip && this.joints.rightHip) {
+                        const spinePos = new THREE.Vector3()
+                            .addVectors(this.joints.leftHip.position, this.joints.rightHip.position)
+                            .multiplyScalar(0.5);
+                        spinePos.y += 0.25; // Mid-torso
+                        this.joints.spine.position.copy(spinePos);
+                    }
+                    
+                    // Update neck
+                    if (this.joints.chest && this.joints.head) {
+                        this.joints.neck.position.copy(this.joints.chest.position)
+                            .lerp(this.joints.head.position, 0.3);
+                    }
+                    
+                    // Update LEFT HAND (21 landmarks) with smooth lerping
+                    if (leftHand.length >= 21 && this.joints.leftWrist) {
+                        const wristPos = this.joints.leftWrist.position;
+                        const handScale = 0.15;
+                        
+                        for (let i = 1; i <= 20; i++) {
+                            const jointName = `leftHand${i}`;
+                            if (this.joints[jointName] && leftHand[i]) {
+                                const lm = leftHand[i];
+                                const targetPos = new THREE.Vector3(
+                                    wristPos.x - (lm.x - 0.5) * handScale,
+                                    wristPos.y - lm.y * handScale * 0.8,
+                                    wristPos.z + (lm.z || 0) * handScale * 0.5
+                                );
+                                // Smooth lerp keeps fingers visible
+                                this.joints[jointName].position.lerp(targetPos, lerpFactor);
+                            }
+                        }
+                    }
+                    
+                    // Update RIGHT HAND (21 landmarks) with smooth lerping
+                    if (rightHand.length >= 21 && this.joints.rightWrist) {
+                        const wristPos = this.joints.rightWrist.position;
+                        const handScale = 0.15;
+                        
+                        for (let i = 1; i <= 20; i++) {
+                            const jointName = `rightHand${i}`;
+                            if (this.joints[jointName] && rightHand[i]) {
+                                const lm = rightHand[i];
+                                const targetPos = new THREE.Vector3(
+                                    wristPos.x + (lm.x - 0.5) * handScale,
+                                    wristPos.y - lm.y * handScale * 0.8,
+                                    wristPos.z + (lm.z || 0) * handScale * 0.5
+                                );
+                                // Smooth lerp keeps fingers visible
+                                this.joints[jointName].position.lerp(targetPos, lerpFactor);
+                            }
+                        }
+                    }
+                    
+                    // Update all bone positions and rotations
+                    this.bones.forEach(boneInfo => this.updateBone(boneInfo));
+                }
+                
+                /**
+                 * Apply pulsing glow effect to all joints
+                 */
+                applyGlowPulse(time) {
+                    const pulseValue = Math.sin(time * 0.002) * 0.3 + 0.7;
+                    
+                    Object.values(this.joints).forEach(joint => {
+                        if (joint.material && joint.material.emissiveIntensity !== undefined) {
+                            joint.material.emissiveIntensity = 0.8 * pulseValue;
+                        }
+                    });
+                    
+                    // Pulse head core
+                    if (this.headCore) {
+                        this.headCore.material.emissiveIntensity = 1.5 * pulseValue;
+                    }
+                    
+                    // Rotate head shell
+                    if (this.headShell) {
+                        this.headShell.rotation.y += 0.005;
+                        this.headShell.rotation.x = Math.sin(time * 0.001) * 0.1;
+                    }
+                }
+            }
+            
+            // Create the Neural-Link Avatar
+            const avatar = new Skeleton(scene);
+            
+            // Store globally for external access
+            window.neuralLinkAvatar = avatar;
+            
+            console.log('[Neural-Link] Avatar ready');
+            
+            // ========================================
+            // END NEURAL-LINK AVATAR CODE
+            // ========================================
+
+            // Handle window resize
+            window.addEventListener('resize', onWindowResize, false);
+
+            console.log('Scene initialized successfully');
+        }
+
+        /**
+         * Handle window resize
+         */
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        /**
+         * Pose Playback System
+         */
+        let currentPoseData = null;
+        let currentFrame = 0;
+        let isPlaying = false;
+        let frameRate = 30;
+        let lastFrameTime = 0;
+
+        /**
+         * Load and play a sign animation
+         * @param {string} word - The ASL word to play (e.g., 'candy', 'clothes')
+         */
+        async function playSign(word) {
+            try {
+                updateStatus(`Loading "${word}"...`, 'loading');
+                const uppercaseWord = word.toUpperCase();
+                const url = `/poses/${uppercaseWord}.pose`;
+                console.log(`[PlaySign] Fetching pose from: ${url}`);
+                
+                // Fetch the .pose file
+                const response = await fetch(url);
+                console.log(`[PlaySign] Response status: ${response.status}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to load "${uppercaseWord}": ${response.statusText}`);
+                }
+                
+                console.log(`[PlaySign] Parsing JSON...`);
+                currentPoseData = await response.json();
+                console.log(`[PlaySign] JSON parsed successfully`);
+                
+                if (!currentPoseData.frames || currentPoseData.frames.length === 0) {
+                    throw new Error(`No frames found in "${uppercaseWord}.pose"`);
+                }
+                frameRate = currentPoseData.fps || 30;
+                currentFrame = 0;
+                isPlaying = true;
+                lastFrameTime = Date.now();
+                
+                console.log(`[PlaySign] Loaded "${word}": ${currentPoseData.frames.length} frames @ ${frameRate} fps`);
+                updateStatus(`Playing "${word}" - ${currentPoseData.frames.length} frames @ ${frameRate} fps`, '');
+                
+            } catch (error) {
+                console.error('[PlaySign] Error:', error);
+                updateStatus(`Error: ${error.message}`, 'error');
+                isPlaying = false;
+            }
+        }
+
+        /**
+         * Update status display
+         */
+        function updateStatus(message, className = '') {
+            const statusEl = document.getElementById('status');
+            if (statusEl) {
+                statusEl.textContent = message;
+                statusEl.className = 'status ' + className;
+            }
+        }
+
+        /**
+         * Animation loop
+         */
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const time = Date.now();
+            
+            // Apply pulsing glow effect to avatar
+            if (window.neuralLinkAvatar) {
+                window.neuralLinkAvatar.applyGlowPulse(time);
+            }
+            
+            // Update pose animation if playing
+            if (isPlaying && currentPoseData && currentPoseData.frames.length > 0) {
+                const frameInterval = 1000 / frameRate;
+                const timeSinceLastFrame = time - lastFrameTime;
+                
+                if (timeSinceLastFrame >= frameInterval) {
+                    // Advance to next frame
+                    const frameData = currentPoseData.frames[Math.floor(currentFrame)];
+                    if (frameData && window.neuralLinkAvatar) {
+                        window.neuralLinkAvatar.update(frameData);
+                    }
+                    
+                    currentFrame += timeSinceLastFrame / frameInterval;
+                    
+                    // Loop animation
+                    if (currentFrame >= currentPoseData.frames.length) {
+                        currentFrame = 0;
+                    }
+                    
+                    lastFrameTime = time;
+                }
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // Start the application
+        init();
+        animate();
+
+        // UI Event Handlers
+        function setupUIHandlers() {
+            const wordInput = document.getElementById('word-input');
+            const playBtn = document.getElementById('play-btn');
+            const quickBtns = document.querySelectorAll('.quick-btn');
+
+            if (!wordInput || !playBtn) {
+                console.error('[UI] Control elements not found!');
+                return;
+            }
+
+            // Play button click
+            playBtn.addEventListener('click', async () => {
+                const word = wordInput.value.trim();
+                if (!word) {
+                    updateStatus('Please enter a word', 'error');
+                    return;
+                }
+                await playSign(word);
+            });
+
+            // Enter key to play
+            wordInput.addEventListener('keypress', async (e) => {
+                if (e.key === 'Enter') {
+                    const word = wordInput.value.trim();
+                    if (word) {
+                        await playSign(word);
+                    }
+                }
+            });
+
+            // Quick action buttons
+            quickBtns.forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const word = btn.getAttribute('data-word');
+                    wordInput.value = word;
+                    await playSign(word);
+                });
+            });
+
+            console.log('[UI] Event handlers registered');
+        }
+
+        // Setup UI when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setupUIHandlers);
+        } else {
+            // DOM already loaded
+            setupUIHandlers();
+        }
+    </script>
+</body>
+</html>

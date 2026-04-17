@@ -1,0 +1,11 @@
+# Production Requirements for pose-viewer System
+# Install with: pip install -r pose_viewer_requirements.txt
+
+# Core pose-format library (includes Three.js bindings)
+pose-format>=1.6.2
+
+# NumPy for data manipulation
+numpy>=1.24.0
+
+# Optional: MediaPipe if you want to do pose estimation
+# mediapipe>=0.10.0
