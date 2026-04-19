@@ -3,7 +3,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from flask import Flask, send_from_directory, request, jsonify
+from flask import Flask, send_from_directory, request, jsonify, redirect
 from flask_cors import CORS
 from dotenv import load_dotenv
 import requests
@@ -96,22 +96,18 @@ def serve_text_to_sign_language_file(filename):
 # Backward compatibility: redirect old dashed URLs to underscore URLs
 @app.route('/text-to-speech')
 def redirect_text_to_speech():
-    from flask import redirect
     return redirect('/text_to_speech/', 301)
 
 @app.route('/speech-to-text')
 def redirect_speech_to_text():
-    from flask import redirect
     return redirect('/speech_to_text/', 301)
 
 @app.route('/translate-and-speak')
 def redirect_translate_and_speak():
-    from flask import redirect
     return redirect('/translate_and_speak/', 301)
 
 @app.route('/text-to-sign-language')
 def redirect_text_to_sign_language():
-    from flask import redirect
     return redirect('/text_to_sign_language/', 301)
 
 
