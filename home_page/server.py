@@ -56,52 +56,63 @@ def home():
     return send_from_directory('.', 'home.html')
 
 
-@app.route('/text-to-speech')
+# Routes with underscores (matching folder names) - works in Flask and Netlify
+@app.route('/text_to_speech')
+@app.route('/text_to_speech/')
 def text_to_speech():
-    # Serve the static page under text_to_speech/index.html
     return send_from_directory('../text_to_speech', 'index.html')
 
-
-@app.route('/speech-to-text')
+@app.route('/speech_to_text')
+@app.route('/speech_to_text/')
 def speech_to_text():
-    # Serve the static page under speech_to_text/index.html
     return send_from_directory('../speech_to_text', 'index.html')
 
-
-@app.route('/translate-and-speak')
+@app.route('/translate_and_speak')
+@app.route('/translate_and_speak/')
 def translate_and_speak():
-    # Serve the static page under translate_and_speak/index.html
     return send_from_directory('../translate_and_speak', 'index.html')
 
-
-@app.route('/text-to-sign-language')
+@app.route('/text_to_sign_language')
+@app.route('/text_to_sign_language/')
 def text_to_sign_language():
-    # Serve the text-to-sign-language page
     return send_from_directory('../text_to_sign_language', 'index.html')
 
-
-@app.route('/speech-to-text/<path:filename>')
+@app.route('/speech_to_text/<path:filename>')
 def speech_to_text_static(filename):
-    # Serve static files for speech-to-text component
     return send_from_directory('../speech_to_text', filename)
 
-
-@app.route('/text-to-speech/<path:filename>')
+@app.route('/text_to_speech/<path:filename>')
 def text_to_speech_static(filename):
-    # Serve static files for text-to-speech component
     return send_from_directory('../text_to_speech', filename)
 
-
-@app.route('/translate-and-speak/<path:filename>')
+@app.route('/translate_and_speak/<path:filename>')
 def translate_and_speak_static(filename):
-    # Serve static files for translate-and-speak component
     return send_from_directory('../translate_and_speak', filename)
 
-
-@app.route('/text-to-sign-language/<path:filename>')
+@app.route('/text_to_sign_language/<path:filename>')
 def serve_text_to_sign_language_file(filename):
-    # Serve static files for text-to-sign-language component
     return send_from_directory('../text_to_sign_language', filename)
+
+# Backward compatibility: redirect old dashed URLs to underscore URLs
+@app.route('/text-to-speech')
+def redirect_text_to_speech():
+    from flask import redirect
+    return redirect('/text_to_speech/', 301)
+
+@app.route('/speech-to-text')
+def redirect_speech_to_text():
+    from flask import redirect
+    return redirect('/speech_to_text/', 301)
+
+@app.route('/translate-and-speak')
+def redirect_translate_and_speak():
+    from flask import redirect
+    return redirect('/translate_and_speak/', 301)
+
+@app.route('/text-to-sign-language')
+def redirect_text_to_sign_language():
+    from flask import redirect
+    return redirect('/text_to_sign_language/', 301)
 
 
 # NEW: Kalidokit POC Module (isolated from existing text-to-sign-language)
