@@ -1,0 +1,77 @@
+/* Common Header Styles for VOTEX */
+/* Include this file in pages that use the common header */
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 28px;
+}
+
+.site-header {
+  padding: 14px 0;
+  position: relative;
+  z-index: 50;
+  margin: 18px 20px;
+  background: linear-gradient(90deg, rgba(0,184,148,0.06), rgba(230,220,200,0.03));
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(3,18,40,0.45);
+  backdrop-filter: blur(6px);
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 6px 18px;
+}
+
+.logo-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.nav-logo {
+  height: 40px;
+  width: auto;
+}
+
+.top-nav ul {
+  list-style: none;
+  display: flex;
+  gap: 28px;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  flex-wrap: wrap;
+}
+
+.top-nav a {
+  color: rgba(255,255,255,0.92);
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  padding: 6px 0;
+}
+
+.top-nav a:hover {
+  color: #00b894;
+  transform: translateY(-1px);
+}
+
+.top-nav a.active {
+  color: #ffffff;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .header-inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .top-nav ul {
+    gap: 14px;
+  }
+}

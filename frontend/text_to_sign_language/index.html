@@ -12,20 +12,28 @@
   <link rel="stylesheet" href="components/ThreeIKAvatar.css?v=20260321e">
 </head>
 <body>
-  <div class="container">
-    <header class="site-header">
-      <div class="logo">
-        <h1>🤟 <span class="gradient-text">Sign Translate</span></h1>
-        <p class="tagline">by VOTEX</p>
-      </div>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="/" class="logo-link">
+        <img src="../logo.png" alt="VOTEX logo" class="nav-logo">
+      </a>
       <nav class="top-nav">
-        <a href="/">🏠 Home</a>
-        <a href="/text_to_speech/">Text to Speech</a>
-        <a href="/speech_to_text/">Speech to Text</a>
-        <a href="/translate_and_speak/">Translate & Speak</a>
-        <a href="/text_to_sign_language/" class="active">Sign Language</a>
+        <ul>
+          <li><a href="/">🏠 Home</a></li>
+          <li><a href="/text_to_speech/">Text to Speech</a></li>
+          <li><a href="/speech_to_text/">Speech to Text</a></li>
+          <li><a href="/translate_and_speak/">Translate & Speak</a></li>
+          <li><a href="/text_to_sign_language/" class="active">Text to Sign Language</a></li>
+        </ul>
       </nav>
-    </header>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <div class="prototype-notice" role="status" aria-live="polite">
+      This is just a prototype. The page is still under development.
+    </div>
 
     <div class="main-layout">
       <!-- Input Section -->

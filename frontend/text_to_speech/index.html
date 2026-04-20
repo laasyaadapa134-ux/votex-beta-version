@@ -4,51 +4,66 @@
 <meta charset="UTF-8">
 <title>VOTEX – Text to Speech</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
   :root {
-    --primary: #10b981;
+    --primary: #00b894;
     --primary-dark: #059669;
     --primary-light: #ecfdf5;
     --dark: #065f46;
+    --accent: #00b894;
+    --accent-2: #e6dcc8;
     --bg: #f8fafc;
     --surface: #ffffff;
-    --text: #0f172a;
-    --text-soft: #475569;
+    --text: #e6eefc;
+    --text-soft: #bfc7bd;
     --border: #e2e8f0;
-    --shadow: 0 25px 50px -12px rgba(16,185,129,0.25);
+    --shadow: 0 25px 50px -12px rgba(0,184,148,0.25);
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   body {
-    font-family: 'Inter', sans-serif;
-    background: linear-gradient(135deg,#071126 0%, #0ea5a4 60%);
-    color: var(--text);
+    font-family: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    background: linear-gradient(180deg, #064635 0%, #0b7a72 55%, #e6dcc8 100%);
+    background-attachment: fixed;
+    background-size: cover;
+    color: #e6eefc;
     min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
   }
-  header {
-    background: var(--dark);
-    color: white;
-    padding: 1.2rem 5%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    position: sticky;
-    top: 0;
-    z-index: 300;
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 28px;
   }
-  .logo { font-size: 1.9rem; font-weight: 700; letter-spacing: -1px; }
-  .logo span { color: var(--primary); }
-
-  /* homepage-like nav helpers */
-  .site-header { background: var(--dark); }
-  .header-inner { display:flex; align-items:center; justify-content:space-between; gap:1rem; max-width:1200px; margin:0 auto; width:100%; }
-  .logo-link { display:flex; align-items:center; gap:0.6rem; color:inherit; text-decoration:none; }
-  .nav-logo { height:34px; display:inline-block; }
-  .top-nav ul { list-style:none; display:flex; gap:1rem; margin:0; padding:0; }
-  .top-nav a { color: white; text-decoration:none; opacity:0.95; padding:6px 10px; border-radius:8px; font-weight:600; }
-  .top-nav a:hover { background: rgba(255,255,255,0.05); opacity:1; }
-  .login-btn { background: transparent; border:1px solid rgba(255,255,255,0.12); color:white; padding:0.5rem 0.9rem; border-radius:10px; cursor:pointer; }
+  .site-header {
+    padding: 14px 0;
+    position: relative;
+    z-index: 50;
+    margin: 18px 20px;
+    background: linear-gradient(90deg, rgba(0,184,148,0.06), rgba(230,220,200,0.03));
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(3,18,40,0.45);
+    backdrop-filter: blur(6px);
+  }
+  .header-inner {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:1rem;
+    padding:6px 18px;
+  }
+  .logo-link { display:flex; align-items:center; text-decoration:none; }
+  .nav-logo { height:40px; width:auto; }
+  .top-nav ul { list-style:none; display:flex; gap:28px; align-items:center; margin:0; padding:0; flex-wrap:wrap; }
+  .top-nav a {
+    color: rgba(255,255,255,0.92);
+    text-decoration:none;
+    font-weight:700;
+    letter-spacing:0.6px;
+    padding:6px 0;
+  }
+  .top-nav a:hover { color: var(--primary); transform: translateY(-1px); }
+  .top-nav a.active { color: #ffffff; }
 
   .hero {
     background: linear-gradient(135deg, var(--dark), #0f766e);
@@ -157,6 +172,8 @@
     .controls { flex-direction: column; gap: 1.5rem; }
     .hero h1 { font-size: 2.5rem; }
     .card { margin: -2rem auto 4rem; }
+    .header-inner { flex-direction: column; align-items: flex-start; }
+    .top-nav ul { gap: 14px; }
   }
 
   /* ensure controls and selects are interactive above other elements */
@@ -168,9 +185,9 @@
 <body>
 
 <header class="site-header">
-  <div class="header-inner">
-    <a href="home.html" class="logo-link">
-      <div class="logo"><span>V</span>OTEX</div>
+  <div class="container header-inner">
+    <a href="/" class="logo-link">
+      <img src="../logo.png" alt="VOTEX logo" class="nav-logo">
     </a>
     <nav class="top-nav">
       <ul>
@@ -181,9 +198,6 @@
         <li><a href="/text_to_sign_language/">Text to Sign Language</a></li>
       </ul>
     </nav>
-    <div class="login-wrap">
-      <button class="login-btn">Login</button>
-    </div>
   </div>
 </header>
 
@@ -234,43 +248,7 @@ const languages = [
   {code:'ja-JP',name:'日本語 / Japanese'},
   {code:'ko-KR',name:'한국어 / Korean'},
   {code:'ar-SA',name:'العربية / Arabic'},
-  {code:'hi-IN',name:'हिन्दी / Hindi'},
-  {code:'bn-BD',name:'বাংলা / Bengali'},
-  {code:'ur-PK',name:'اردو / Urdu'},
-  {code:'pa-IN',name:'ਪੰਜਾਬੀ / Punjabi'},
-  {code:'ta-IN',name:'தமிழ் / Tamil'},
-  {code:'te-IN',name:'తెలుగు / Telugu'},
-  {code:'mr-IN',name:'मराठी / Marathi'},
-  {code:'gu-IN',name:'ગુજરાતી / Gujarati'},
-  {code:'kn-IN',name:'ಕನ್ನಡ / Kannada'},
-  {code:'ml-IN',name:'മലയാളം / Malayalam'},
-  {code:'vi-VN',name:'Tiếng Việt / Vietnamese'},
-  {code:'th-TH',name:'ไทย / Thai'},
-  {code:'id-ID',name:'Bahasa Indonesia / Indonesian'},
-  {code:'ms-MY',name:'Bahasa Melayu / Malay'},
-  {code:'tr-TR',name:'Türkçe / Turkish'},
-  {code:'fa-IR',name:'فارسی / Persian'},
-  {code:'pl-PL',name:'Polski / Polish'},
-  {code:'nl-NL',name:'Nederlands / Dutch'},
-  {code:'sv-SE',name:'Svenska / Swedish'},
-  {code:'no-NO',name:'Norsk / Norwegian'},
-  {code:'da-DK',name:'Dansk / Danish'},
-  {code:'fi-FI',name:'Suomi / Finnish'},
-  {code:'el-GR',name:'Ελληνικά / Greek'},
-  {code:'he-IL',name:'עברית / Hebrew'},
-  {code:'cs-CZ',name:'Čeština / Czech'},
-  {code:'sk-SK',name:'Slovenčina / Slovak'},
-  {code:'hu-HU',name:'Magyar / Hungarian'},
-  {code:'ro-RO',name:'Română / Romanian'},
-  {code:'bg-BG',name:'Български / Bulgarian'},
-  {code:'uk-UA',name:'Українська / Ukrainian'},
-  {code:'sr-RS',name:'Српски / Serbian'},
-  {code:'hr-HR',name:'Hrvatski / Croatian'},
-  {code:'sl-SI',name:'Slovenščina / Slovenian'},
-  {code:'bs-BA',name:'Bosanski / Bosnian'},
-  {code:'ca-ES',name:'Català / Catalan'},
-  {code:'gl-ES',name:'Galego / Galician'},
-  {code:'af-ZA',name:'Afrikaans / Afrikaans'}
+  {code:'hi-IN',name:'हिन्दी / Hindi'}
 ];
 
 const targetLang = document.getElementById('targetLang');

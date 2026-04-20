@@ -60,38 +60,38 @@ def home():
 @app.route('/text_to_speech')
 @app.route('/text_to_speech/')
 def text_to_speech():
-    return send_from_directory(os.path.join(BASE_DIR, 'text_to_speech'), 'index.html')
+    return send_from_directory(os.path.join(BASE_DIR, 'frontend', 'text_to_speech'), 'index.html')
 
 @app.route('/speech_to_text')
 @app.route('/speech_to_text/')
 def speech_to_text():
-    return send_from_directory(os.path.join(BASE_DIR, 'speech_to_text'), 'index.html')
+    return send_from_directory(os.path.join(BASE_DIR, 'frontend', 'speech_to_text'), 'index.html')
 
 @app.route('/translate_and_speak')
 @app.route('/translate_and_speak/')
 def translate_and_speak():
-    return send_from_directory(os.path.join(BASE_DIR, 'translate_and_speak'), 'index.html')
+    return send_from_directory(os.path.join(BASE_DIR, 'frontend', 'translate_and_speak'), 'index.html')
 
 @app.route('/text_to_sign_language')
 @app.route('/text_to_sign_language/')
 def text_to_sign_language():
-    return send_from_directory(os.path.join(BASE_DIR, 'text_to_sign_language'), 'index.html')
+    return send_from_directory(os.path.join(BASE_DIR, 'frontend', 'text_to_sign_language'), 'index.html')
 
 @app.route('/speech_to_text/<path:filename>')
 def speech_to_text_static(filename):
-    return send_from_directory(os.path.join(BASE_DIR, 'speech_to_text'), filename)
+    return send_from_directory(os.path.join(BASE_DIR, 'frontend', 'speech_to_text'), filename)
 
 @app.route('/text_to_speech/<path:filename>')
 def text_to_speech_static(filename):
-    return send_from_directory(os.path.join(BASE_DIR, 'text_to_speech'), filename)
+    return send_from_directory(os.path.join(BASE_DIR, 'frontend', 'text_to_speech'), filename)
 
 @app.route('/translate_and_speak/<path:filename>')
 def translate_and_speak_static(filename):
-    return send_from_directory(os.path.join(BASE_DIR, 'translate_and_speak'), filename)
+    return send_from_directory(os.path.join(BASE_DIR, 'frontend', 'translate_and_speak'), filename)
 
 @app.route('/text_to_sign_language/<path:filename>')
 def serve_text_to_sign_language_file(filename):
-    return send_from_directory(os.path.join(BASE_DIR, 'text_to_sign_language'), filename)
+    return send_from_directory(os.path.join(BASE_DIR, 'frontend', 'text_to_sign_language'), filename)
 
 # Backward compatibility: redirect old dashed URLs to underscore URLs
 @app.route('/text-to-speech')

@@ -19,6 +19,21 @@ const CONFIG = {
   }
 };
 
+const BACKEND_BASE_URL = (() => {
+  const configuredBase = window.VOTEX_BACKEND_URL || document.body?.dataset?.backendUrl;
+  if (configuredBase) {
+    return configuredBase.replace(/\/$/, '');
+  }
+
+  const isLocalStaticFrontend = ['localhost', '127.0.0.1'].includes(window.location.hostname)
+    && window.location.port
+    && window.location.port !== '5000';
+
+  return isLocalStaticFrontend ? 'http://127.0.0.1:5000' : window.location.origin;
+})();
+
+const buildBackendUrl = (path) => `${BACKEND_BASE_URL}${path}`;
+
 const state = {
   inputMode: 'type',
   isRecording: false,
@@ -489,10 +504,7 @@ async function tryProfessionalPoseStream(text, glossTokens) {
     // Leave dictionary_path empty to use server default (which is now 'poses' folder)
     const dictionaryPath = state.poseDictionaryPath.trim() || '';  // Empty means use server default
     
-    // Use relative URL if accessed through server, absolute if file://
-    const apiUrl = window.location.protocol === 'file:' 
-      ? 'http://localhost:5000/api/asl/pose-stream'
-      : '/api/asl/pose-stream';
+    const apiUrl = buildBackendUrl('/api/asl/pose-stream');
     
     const requestBody = { 
       glosses: state.words,
@@ -640,7 +652,7 @@ async function getSignTokens(text) {
   }
 
   try {
-    const response = await fetch('/api/asl/gloss', {
+    const response = await fetch(buildBackendUrl('/api/asl/gloss'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text })

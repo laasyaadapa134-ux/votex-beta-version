@@ -374,6 +374,21 @@ async function tryProfessionalPoseStream(text, glossTokens) {
   return false;
 }
 
+const BACKEND_BASE_URL = (() => {
+  const configuredBase = window.VOTEX_BACKEND_URL || document.body?.dataset?.backendUrl;
+  if (configuredBase) {
+    return configuredBase.replace(/\/$/, '');
+  }
+
+  const isLocalStaticFrontend = ['localhost', '127.0.0.1'].includes(window.location.hostname)
+    && window.location.port
+    && window.location.port !== '5000';
+
+  return isLocalStaticFrontend ? 'http://127.0.0.1:5000' : window.location.origin;
+})();
+
+const buildBackendUrl = (path) => `${BACKEND_BASE_URL}${path}`;
+
 async function requestPoseStream(text, glossTokens, smoothingEngine) {
   const buildRequestBody = (includeDictionaryPath) => ({
     text,
@@ -385,7 +400,7 @@ async function requestPoseStream(text, glossTokens, smoothingEngine) {
   });
 
   try {
-    let response = await fetch('/api/asl/pose-stream', {
+    let response = await fetch(buildBackendUrl('/api/asl/pose-stream'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -394,7 +409,7 @@ async function requestPoseStream(text, glossTokens, smoothingEngine) {
     });
 
     if (!response.ok && state.poseDictionaryPath) {
-      response = await fetch('/api/asl/pose-stream', {
+      response = await fetch(buildBackendUrl('/api/asl/pose-stream'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -451,7 +466,7 @@ async function getSignTokens(text) {
   }
 
   try {
-    const response = await fetch('/api/asl/gloss', {
+    const response = await fetch(buildBackendUrl('/api/asl/gloss'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

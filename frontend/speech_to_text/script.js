@@ -50,9 +50,6 @@ const translations = {
       startRecording: 'Start Recording',
       stopRecording: 'Stop Recording',
       clearText: 'Clear Text',
-      uploadFile: 'Upload Audio/Video',
-      loadUrl: 'Load URL',
-      transcribe: 'Transcribe Audio',
       downloadTxt: 'Download as TXT',
       downloadDoc: 'Download as DOC',
       recording: 'Recording...'
@@ -63,13 +60,6 @@ const translations = {
       placeholder: 'Your transcribed text will appear here...',
       words: 'Words',
       characters: 'Characters'
-    },
-    media: {
-      playingFile: 'Playing File'
-    },
-    url: {
-      orLoadFromUrl: 'Or load from URL (YouTube, direct video/audio links)',
-      placeholder: 'Paste YouTube URL or direct media link (e.g., https://youtube.com/watch?v=...)'
     },
     tips: {
       title: 'Tips for Best Results',
@@ -86,8 +76,7 @@ const translations = {
       feature3: '✅ Continuous recording mode',
       feature4: '✅ Interim results preview',
       feature5: '✅ Editable output',
-      feature6: '✅ Export to TXT/DOC formats',
-      feature7: '✅ Audio/Video file transcription'
+      feature6: '✅ Export to TXT/DOC formats'
     },
     compatibility: {
       title: '⚠️ Browser Compatibility',
@@ -1031,18 +1020,7 @@ const elements = {
   charCount: document.getElementById('charCount'),
   audioVisualizer: document.getElementById('audioVisualizer'),
   recordingBanner: document.getElementById('recordingBanner'),
-  uiLanguageSelect: document.getElementById('uiLanguageSelect'),
-  uploadBtn: document.getElementById('uploadBtn'),
-  fileInput: document.getElementById('fileInput'),
-  mediaPlayerSection: document.getElementById('mediaPlayerSection'),
-  audioPlayer: document.getElementById('audioPlayer'),
-  videoPlayer: document.getElementById('videoPlayer'),
-  transcribeBtn: document.getElementById('transcribeBtn'),
-  closeMediaBtn: document.getElementById('closeMediaBtn'),
-  fileName: document.getElementById('fileName'),
-  transcriptionStatus: document.getElementById('transcriptionStatus'),
-  urlInput: document.getElementById('urlInput'),
-  loadUrlBtn: document.getElementById('loadUrlBtn')
+  uiLanguageSelect: document.getElementById('uiLanguageSelect')
 };
 
 // ===== Speech Recognition Setup =====
@@ -1388,403 +1366,6 @@ function disableRecordingControls() {
   elements.startBtn.title = 'Speech recognition not supported in this browser';
 }
 
-// ===== Media Upload & Transcription =====
-let currentMediaSource = null;
-let mediaContext = null;
-let mediaStream = null;
-
-function handleFileUpload(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  
-  // Check file type
-  const isAudio = file.type.startsWith('audio/');
-  const isVideo = file.type.startsWith('video/');
-  
-  if (!isAudio && !isVideo) {
-    showError('Please upload an audio or video file');
-    return;
-  }
-  
-  // Display file name
-  elements.fileName.textContent = file.name;
-  
-  // Create URL for the file
-  const fileURL = URL.createObjectURL(file);
-  
-  // Show the media player section
-  elements.mediaPlayerSection.style.display = 'block';
-  
-  // Load file into appropriate player
-  if (isAudio) {
-    elements.audioPlayer.style.display = 'block';
-    elements.videoPlayer.style.display = 'none';
-    elements.audioPlayer.src = fileURL;
-    currentMediaSource = elements.audioPlayer;
-  } else {
-    elements.videoPlayer.style.display = 'block';
-    elements.audioPlayer.style.display = 'none';
-    elements.videoPlayer.src = fileURL;
-    currentMediaSource = elements.videoPlayer;
-  }
-  
-  elements.transcriptionStatus.textContent = 'Loading file...';
-  showNotification(`📁 File loaded: ${file.name}. Starting transcription automatically...`, 'success');
-  
-  // Auto-start transcription after file loads
-  setTimeout(() => {
-    transcribeMedia();
-  }, 500);
-}
-
-function closeMediaPlayer() {
-  if (currentMediaSource && currentMediaSource !== 'youtube') {
-    currentMediaSource.pause();
-    currentMediaSource.src = '';
-  }
-  
-  // Clear YouTube iframe if present
-  const iframeContainer = document.getElementById('youtubeIframeContainer');
-  if (iframeContainer) {
-    iframeContainer.innerHTML = '';
-  }
-  
-  // Stop any ongoing media transcription
-  if (state.recognition && state.isRecording) {
-    stopRecording();
-  }
-  
-  elements.mediaPlayerSection.style.display = 'none';
-  elements.fileInput.value = '';
-  elements.urlInput.value = '';
-  currentMediaSource = null;
-  
-  if (mediaContext) {
-    mediaContext.close();
-    mediaContext = null;
-  }
-  if (mediaStream) {
-    mediaStream.getTracks().forEach(track => track.stop());
-    mediaStream = null;
-  }
-}
-
-async function transcribeMedia() {
-  if (!currentMediaSource) {
-    showError('No media file loaded');
-    return;
-  }
-  
-  // Handle YouTube videos differently (still uses microphone)
-  if (currentMediaSource === 'youtube') {
-    transcribeYouTubeWithMic();
-    return;
-  }
-  
-  elements.transcriptionStatus.textContent = '🎯 Starting transcription...';
-  elements.transcribeBtn.disabled = true;
-  
-  try {
-    // Get the audio source (file or URL)
-    const audioSrc = currentMediaSource.src;
-    
-    // Check if it's a blob URL (uploaded file) or external URL
-    if (audioSrc.startsWith('blob:')) {
-      // For blob URLs, we need to send the actual file
-      // Get the file from fileInput
-      const file = elements.fileInput.files[0];
-      if (!file) {
-        throw new Error('File not found');
-      }
-      
-      elements.transcriptionStatus.textContent = '📤 Uploading file for transcription...';
-      
-      // Send file to backend for transcription
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('language', elements.languageSelect.value);
-      
-      const response = await fetch('/api/transcribe', {
-        method: 'POST',
-        body: formData
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Server error: ${response.statusText}`);
-      }
-      
-      const result = await response.json();
-      
-      if (result.error) {
-        throw new Error(result.error);
-      }
-      
-      // Add transcribed text to the output
-      const transcribedText = result.text || result.transcript || '';
-      if (transcribedText) {
-        elements.transcriptOutput.textContent += (elements.transcriptOutput.textContent ? '\n\n' : '') + transcribedText;
-        state.transcript = elements.transcriptOutput.textContent;
-        updateStats();
-        elements.transcriptionStatus.textContent = '✅ Transcription completed!';
-        showNotification('✅ Transcription completed successfully!', 'success');
-      } else {
-        throw new Error('No transcript returned from server');
-      }
-      
-    } else {
-      // For external URLs, send URL to backend
-      elements.transcriptionStatus.textContent = '📥 Downloading and transcribing media...';
-      
-      const response = await fetch('/api/transcribe', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          url: audioSrc,
-          language: elements.languageSelect.value
-        })
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Server error: ${response.statusText}`);
-      }
-      
-      const result = await response.json();
-      
-      if (result.error) {
-        throw new Error(result.error);
-      }
-      
-      // Add transcribed text
-      const transcribedText = result.text || result.transcript || '';
-      if (transcribedText) {
-        elements.transcriptOutput.textContent += (elements.transcriptOutput.textContent ? '\n\n' : '') + transcribedText;
-        state.transcript = elements.transcriptOutput.textContent;
-        updateStats();
-        elements.transcriptionStatus.textContent = '✅ Transcription completed!';
-        showNotification('✅ Transcription completed successfully!', 'success');
-      } else {
-        throw new Error('No transcript returned from server');
-      }
-    }
-    
-  } catch (error) {
-    console.error('Media transcription error:', error);
-    
-    // Show helpful error messages
-    let errorMsg = 'Failed to transcribe media: ' + error.message;
-    if (error.message.includes('instructions')) {
-      errorMsg = '⚠️ Transcription service not configured. Please install Whisper or set up API keys. See server logs.';
-    }
-    
-    showError(errorMsg);
-    elements.transcriptionStatus.textContent = '❌ Transcription failed';
-  } finally {
-    elements.transcribeBtn.disabled = false;
-  }
-}
-
-// Special handling for YouTube video transcription
-function transcribeYouTubeWithMic() {
-  // Use microphone to capture audio
-  elements.transcriptionStatus.textContent = '🎤 Microphone active - capturing YouTube audio... Play the video now!';
-  
-  try {
-    // Configure and start recognition
-    if (!state.recognition) {
-      state.recognition = initSpeechRecognition();
-    }
-    
-    state.recognition.continuous = true;
-    state.recognition.interimResults = true;
-    state.recognition.lang = elements.languageSelect.value;
-    
-    // Start recognition
-    state.recognition.start();
-    state.isRecording = true;
-    
-    // Update UI
-    elements.recordingBanner.classList.add('active');
-    elements.transcribeBtn.textContent = '⏹️ Stop Transcription';
-    elements.transcribeBtn.style.background = '#ef4444';
-    
-    // When clicked again, stop
-    elements.transcribeBtn.onclick = () => {
-      state.recognition.stop();
-      state.isRecording = false;
-      elements.recordingBanner.classList.remove('active');
-      elements.transcribeBtn.innerHTML = '<span class="btn-icon">🎯</span><span data-i18n="buttons.transcribe">Transcribe Audio</span>';
-      elements.transcribeBtn.style.background = '';
-      elements.transcribeBtn.onclick = null;
-      elements.transcribeBtn.addEventListener('click', transcribeMedia);
-      elements.transcriptionStatus.textContent = '✅ Transcription stopped';
-      showNotification('Transcription stopped', 'success');
-    };
-    
-    showNotification('🎤 Microphone active! Play the YouTube video now. The audio will be transcribed as your mic picks it up.', 'success');
-    
-  } catch (error) {
-    console.error('YouTube transcription error:', error);
-    showError('Failed to start transcription: ' + error.message);
-    elements.transcriptionStatus.textContent = '❌ Transcription failed';
-    elements.transcribeBtn.disabled = false;
-  }
-}
-
-// ===== URL Loading Functions =====
-function extractYouTubeId(url) {
-  // Handle various YouTube URL formats
-  const patterns = [
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
-    /youtube\.com\/shorts\/([^&\n?#]+)/,
-    /youtube\.com\/v\/([^&\n?#]+)/
-  ];
-  
-  for (const pattern of patterns) {
-    const match = url.match(pattern);
-    if (match) return match[1];
-  }
-  
-  return null;
-}
-
-function isDirectMediaUrl(url) {
-  // Check if URL points to a direct media file
-  const mediaExtensions = ['.mp3', '.mp4', '.wav', '.ogg', '.webm', '.m4a', '.aac', '.flac'];
-  const lowerUrl = url.toLowerCase();
-  return mediaExtensions.some(ext => lowerUrl.includes(ext));
-}
-
-function loadFromUrl() {
-  const url = elements.urlInput.value.trim();
-  
-  if (!url) {
-    showError('Please enter a URL');
-    return;
-  }
-  
-  // Check if it's a YouTube URL
-  const youtubeId = extractYouTubeId(url);
-  
-  if (youtubeId) {
-    loadYouTubeVideo(youtubeId, url);
-  } else if (isDirectMediaUrl(url)) {
-    loadDirectMedia(url);
-  } else {
-    // Try to load as direct media anyway
-    loadDirectMedia(url);
-  }
-}
-
-function loadYouTubeVideo(videoId, originalUrl) {
-  // Show warning about YouTube limitations
-  showNotification('📺 YouTube video loaded! Note: Transcription uses your microphone to capture audio from speakers.', 'info');
-  
-  // Display file name
-  elements.fileName.textContent = `YouTube Video (${videoId})`;
-  
-  // Show the media player section
-  elements.mediaPlayerSection.style.display = 'block';
-  
-  // Hide standard players, create YouTube iframe
-  elements.audioPlayer.style.display = 'none';
-  elements.videoPlayer.style.display = 'none';
-  
-  // Create or update YouTube iframe
-  let iframeContainer = document.getElementById('youtubeIframeContainer');
-  if (!iframeContainer) {
-    iframeContainer = document.createElement('div');
-    iframeContainer.id = 'youtubeIframeContainer';
-    iframeContainer.style.cssText = 'width: 100%; aspect-ratio: 16/9; border-radius: 10px; overflow: hidden;';
-    elements.mediaPlayerSection.querySelector('.media-player-container').appendChild(iframeContainer);
-  }
-  
-  // Embed YouTube video with enablejsapi for potential control
-  iframeContainer.innerHTML = `
-    <iframe 
-      width="100%" 
-      height="100%" 
-      src="https://www.youtube.com/embed/${videoId}?enablejsapi=1&origin=${window.location.origin}" 
-      frameborder="0" 
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-      allowfullscreen
-      style="border-radius: 10px;">
-    </iframe>
-  `;
-  
-  currentMediaSource = 'youtube';
-  elements.transcriptionStatus.innerHTML = `
-    <div style="background: #fef3c7; padding: 1rem; border-radius: 8px; border-left: 4px solid #f59e0b;">
-      <strong>💡 YouTube Transcription:</strong><br>
-      ✅ Microphone will start automatically to capture audio<br>
-      ✅ Turn up your speakers/volume<br>
-      ✅ Play the YouTube video now<br>
-      ✅ Your microphone will transcribe the audio in real-time
-    </div>
-  `;
-  
-  showNotification(`📺 YouTube video loaded! Microphone transcription starting automatically...`, 'success');
-  
-  // Auto-start transcription for YouTube
-  setTimeout(() => {
-    transcribeYouTubeWithMic();
-  }, 1000);
-}
-
-function loadDirectMedia(url) {
-  try {
-    // Determine if it's likely audio or video
-    const isAudio = url.match(/\.(mp3|wav|ogg|m4a|aac|flac)/i);
-    
-    // Display file name
-    const fileName = url.split('/').pop().split('?')[0] || 'Media from URL';
-    elements.fileName.textContent = fileName;
-    
-    // Show the media player section
-    elements.mediaPlayerSection.style.display = 'block';
-    
-    // Hide YouTube iframe if exists
-    const iframeContainer = document.getElementById('youtubeIframeContainer');
-    if (iframeContainer) {
-      iframeContainer.style.display = 'none';
-    }
-    
-    // Load file into appropriate player
-    if (isAudio) {
-      elements.audioPlayer.style.display = 'block';
-      elements.videoPlayer.style.display = 'none';
-      elements.audioPlayer.src = url;
-      currentMediaSource = elements.audioPlayer;
-    } else {
-      elements.videoPlayer.style.display = 'block';
-      elements.audioPlayer.style.display = 'none';
-      elements.videoPlayer.src = url;
-      currentMediaSource = elements.videoPlayer;
-    }
-    
-    elements.transcriptionStatus.textContent = 'Loading media...';
-    showNotification(`📥 Media loaded from URL. Starting transcription automatically...`, 'success');
-    
-    // Handle load errors
-    currentMediaSource.onerror = () => {
-      showError('Failed to load media from URL. Check if the URL is valid and accessible.');
-      elements.transcriptionStatus.textContent = '❌ Failed to load media';
-    };
-    
-    // Auto-start transcription after media loads
-    currentMediaSource.onloadedmetadata = () => {
-      setTimeout(() => {
-        transcribeMedia();
-      }, 500);
-    };
-    
-  } catch (error) {
-    console.error('URL loading error:', error);
-    showError('Failed to load media from URL: ' + error.message);
-  }
-}
-
 // ===== Event Listeners =====
 function attachEventListeners() {
   elements.startBtn.addEventListener('click', startRecording);
@@ -1796,23 +1377,11 @@ function attachEventListeners() {
   elements.languageSelect.addEventListener('change', updateLanguage);
   elements.continuousMode.addEventListener('change', updateContinuousMode);
   elements.interimResults.addEventListener('change', updateInterimResults);
-  elements.uiLanguageSelect.addEventListener('change', (e) => {
-    updateUILanguage(e.target.value);
-  });
-  
-  // Upload functionality
-  elements.uploadBtn.addEventListener('click', () => elements.fileInput.click());
-  elements.fileInput.addEventListener('change', handleFileUpload);
-  elements.transcribeBtn.addEventListener('click', transcribeMedia);
-  elements.closeMediaBtn.addEventListener('click', closeMediaPlayer);
-  
-  // URL loading functionality
-  elements.loadUrlBtn.addEventListener('click', loadFromUrl);
-  elements.urlInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-      loadFromUrl();
-    }
-  });
+  if (elements.uiLanguageSelect) {
+    elements.uiLanguageSelect.addEventListener('change', (e) => {
+      updateUILanguage(e.target.value);
+    });
+  }
   
   // Update stats when user manually edits
   elements.transcriptOutput.addEventListener('input', () => {
@@ -1866,7 +1435,10 @@ function init() {
   console.log('Initializing Speech to Text module...');
   
   // Check if all elements are found
-  const missingElements = Object.entries(elements).filter(([key, value]) => !value).map(([key]) => key);
+  const optionalElements = new Set(['uiLanguageSelect']);
+  const missingElements = Object.entries(elements)
+    .filter(([key, value]) => !value && !optionalElements.has(key))
+    .map(([key]) => key);
   if (missingElements.length > 0) {
     console.error('Missing elements:', missingElements);
     return;
