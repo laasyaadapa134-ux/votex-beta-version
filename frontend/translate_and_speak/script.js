@@ -423,11 +423,11 @@ function loadVoices() {
       resolve(voices);
     };
     
-    // Fallback timeout
+    // Fallback timeout - increased for better browser compatibility
     setTimeout(() => {
       voices = speechSynthesis.getVoices();
       resolve(voices);
-    }, 1000);
+    }, 3000);
   });
 }
 
@@ -467,14 +467,17 @@ async function handleSpeak() {
     const locale = LANGUAGE_LOCALE_MAP[targetLang] || targetLang;
     utterance.lang = locale;
 
-    // Find best matching voice
+    // Find best matching voice with fallback
     const matchingVoice = voices.find(v => v.lang.startsWith(targetLang)) ||
                          voices.find(v => v.lang.split('-')[0] === targetLang) ||
+                         voices.find(v => v.lang.includes('en')) ||
                          voices[0];
 
     if (matchingVoice) {
       utterance.voice = matchingVoice;
       console.log('Using voice:', matchingVoice.name, matchingVoice.lang);
+    } else {
+      console.warn('No suitable voice found, using default');
     }
 
     // Set speech parameters
@@ -500,7 +503,17 @@ async function handleSpeak() {
 
     utterance.onerror = (event) => {
       state.isSpeaking = false;
-      elements.speakBtn.textContent = '🔊 Speak Translation';
+      
+      // Provide more helpful error messages
+      let errorMsg = 'Speech failed';
+      if (event.error === 'not-allowed') {
+        errorMsg = 'Speech permission denied. Please allow audio playback.';
+      } else if (event.error === 'network') {
+        errorMsg = 'Network error. Please check your connection.';
+      } else if (event.error === 'synthesis-failed') {
+        errorMsg = 'Speech synthesis failed. Try clicking Speak again.';
+      }
+      updateStatus(errorMsgranslation';
       elements.speakBtn.disabled = false;
       console.error('Speech error:', event.error);
       updateStatus(`Speech error: ${event.error}`, false);
@@ -527,9 +540,9 @@ async function handleDownloadAudio() {
     return;
   }
 
-  // Check text length
-  if (text.length > 200) {
-    updateStatus('Text too long for audio download. Maximum 200 characters. Use "Speak" button instead.', false);
+  // Check text length - increased limit for better usability
+  if (text.length > 500) {
+    updateStatus('Text too long for audio download. Maximum 500 characters. Use "Speak" button for longer texts.', false);
     return;
   }
 
