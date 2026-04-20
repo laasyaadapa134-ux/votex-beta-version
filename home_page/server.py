@@ -111,73 +111,20 @@ def redirect_text_to_sign_language():
     return redirect('/text_to_sign_language/', 301)
 
 
-# NEW: Kalidokit POC Module (isolated from existing text-to-sign-language)
-@app.route('/kalidokit-poc')
-def text_to_sign_kalidokit():
-    # Serve the Kalidokit POC page
-    return send_from_directory('../text_to_sign_kalidokit', 'index.html')
-
-
-@app.route('/kalidokit-poc/<path:filename>')
-def serve_kalidokit_file(filename):
-    # Serve static files for Kalidokit POC component
-    return send_from_directory('../text_to_sign_kalidokit', filename)
-
-
+# Serve pose files for sign language feature
 @app.route('/poses/<path:filename>')
 def poses_static(filename):
-    # Serve .pose files from poses directory
+    # Serve .pose files from poses directory (legacy BODY_135 format)
     return send_from_directory('../poses', filename)
 
 
-# NEW: Serve MediaPipe JSON pose files
 @app.route('/poses_mediapipe/<path:filename>')
 def poses_mediapipe_static(filename):
-    # Serve MediaPipe JSON files for Kalidokit POC
+    # Serve MediaPipe JSON files for sign language animations
     return send_from_directory('../poses_mediapipe', filename)
 
 
-@app.route('/test_pose_player.html')
-def test_pose_player():
-    # Serve test pose player from parent directory
-    return send_from_directory('..', 'test_pose_player.html')
-
-
-@app.route('/test_avatar.html')
-def test_avatar():
-    # Serve test avatar page from parent directory
-    return send_from_directory('..', 'test_avatar.html')
-
-
-@app.route('/test_debug_avatar.html')
-def test_debug_avatar():
-    # Serve debug avatar page from parent directory
-    return send_from_directory('..', 'test_debug_avatar.html')
-
-
-@app.route('/test_simple_avatar.html')
-def test_simple_avatar():
-    # Serve simple avatar test page
-    return send_from_directory('..', 'test_simple_avatar.html')
-
-
-@app.route('/test_professional_avatar.html')
-def test_professional_avatar():
-    # Serve professional avatar page
-    return send_from_directory('..', 'test_professional_avatar.html')
-
-
-@app.route('/test_neural_link_avatar.html')
-def test_neural_link_avatar():
-    # Serve Neural-Link Mannequin avatar page
-    return send_from_directory('..', 'test_neural_link_avatar.html')
-
-
-@app.route('/threejs_esm_starter.html')
-def threejs_esm_starter():
-    # Serve Three.js ESM starter template
-    return send_from_directory('..', 'threejs_esm_starter.html')
-
+# ==================== API ENDPOINTS ====================
 
 @app.route('/api/asl/gloss', methods=['POST'])
 def asl_gloss_api():
